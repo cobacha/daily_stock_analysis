@@ -10,7 +10,7 @@
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from typing import Optional, List, Dict, Any
 
 from src.storage import DatabaseManager, AnalysisHistory
@@ -111,6 +111,110 @@ class AnalysisRepository:
             logger.error(f"保存分析结果失败: {e}")
             return 0
     
+    def get_post_close_cache(
+        self,
+        code: str,
+        report_type: str,
+        close_hour: int = 18,
+    ) -> Optional[AnalysisHistory]:
+        """
+        盘后缓存查询：18:00（含）之后，查找当天已有的同股票、同报告类型分析记录。
+
+        逻辑：
+        - 当前本地时间 < close_hour 时直接返回 None（盘中不复用缓存）
+        - 当前本地时间 >= close_hour 时，查找今天（自然日）创建的最新记录
+        - 若找到则命中缓存，调用方可直接复用，避免重复调用 LLM
+
+        Args:
+            code: 标准化后的股票代码
+            report_type: 归一化的报告类型（simple/full/brief）
+            close_hour: 收盘后缓存生效的小时数（默认 18，即 18:00）
+
+        Returns:
+            命中的 AnalysisHistory 记录，未命中返回 None
+        """
+        now = datetime.now()
+        if now.hour < close_hour:
+            return None  # 盘中时段不复用缓存
+
+        today: date = now.date()
+        try:
+            # 查询最近 1 天内的记录，再按自然日过滤
+            records = self.db.get_analysis_history(code=code, days=1, limit=20)
+            for record in records:
+                if record.created_at is None:
+                    continue
+                if record.created_at.date() != today:
+                    continue
+                # 报告类型匹配（detailed 已被 from_str 归一化为 full）
+                if getattr(record, "report_type", None) == report_type:
+                    logger.info(
+                        f"[盘后缓存] 命中 {code} 今日缓存记录 id={record.id}, "
+                        f"created_at={record.created_at}"
+                    )
+                    return record
+        except Exception as e:
+            logger.error(f"查询盘后缓存失败: {e}")
+        return None
+
+    def build_analysis_result_from_cache(
+        self, record: AnalysisHistory
+    ) -> Optional[Any]:
+        """
+        从缓存的 AnalysisHistory 记录重建 AnalysisResult 对象（供 pipeline 路径使用）。
+
+        raw_result 字段存储了完整的 to_dict() 序列化结果，解析后可还原大部分字段。
+
+        Returns:
+            AnalysisResult 对象，失败返回 None
+        """
+        try:
+            import json
+            from src.analyzer import AnalysisResult
+
+            raw: Dict[str, Any] = {}
+            if record.raw_result:
+                try:
+                    raw = json.loads(record.raw_result)
+                except Exception:
+                    pass
+
+            return AnalysisResult(
+                code=record.code,
+                name=record.name or "",
+                sentiment_score=record.sentiment_score or 50,
+                trend_prediction=record.trend_prediction or "",
+                operation_advice=record.operation_advice or "",
+                analysis_summary=record.analysis_summary or "",
+                decision_type=raw.get("decision_type", "hold"),
+                confidence_level=raw.get("confidence_level", "中"),
+                dashboard=raw.get("dashboard"),
+                trend_analysis=raw.get("trend_analysis", ""),
+                short_term_outlook=raw.get("short_term_outlook", ""),
+                medium_term_outlook=raw.get("medium_term_outlook", ""),
+                technical_analysis=raw.get("technical_analysis", ""),
+                ma_analysis=raw.get("ma_analysis", ""),
+                volume_analysis=raw.get("volume_analysis", ""),
+                pattern_analysis=raw.get("pattern_analysis", ""),
+                fundamental_analysis=raw.get("fundamental_analysis", ""),
+                sector_position=raw.get("sector_position", ""),
+                company_highlights=raw.get("company_highlights", ""),
+                news_summary=raw.get("news_summary", ""),
+                market_sentiment=raw.get("market_sentiment", ""),
+                hot_topics=raw.get("hot_topics", ""),
+                key_points=raw.get("key_points", ""),
+                risk_warning=raw.get("risk_warning", ""),
+                buy_reason=raw.get("buy_reason", ""),
+                current_price=raw.get("current_price"),
+                change_pct=raw.get("change_pct"),
+                model_used=raw.get("model_used"),
+                data_sources=raw.get("data_sources", ""),
+                success=True,
+            )
+        except Exception as e:
+            logger.error(f"从缓存重建 AnalysisResult 失败: {e}")
+            return None
+
     def count_by_code(self, code: str, days: int = 30) -> int:
         """
         统计指定股票的分析记录数

@@ -14,9 +14,11 @@
 3. 指数退避重试机制
 """
 
+import json
 import logging
 import random
 import time
+from pathlib import Path
 from threading import BoundedSemaphore, RLock, Thread
 from abc import ABC, abstractmethod
 from datetime import datetime
@@ -496,6 +498,42 @@ class DataFetcherManager:
         self._fundamental_cache_lock = RLock()
         self._fundamental_timeout_worker_limit = 8
         self._fundamental_timeout_slots = BoundedSemaphore(self._fundamental_timeout_worker_limit)
+        # 股票名称持久化缓存（进程内 + 磁盘双层）
+        self._stock_name_cache_file: Path = Path(__file__).parent.parent / "cache" / "stock_names.json"
+        self._stock_name_cache_lock = RLock()
+        self._stock_name_cache: Dict[str, str] = self._load_stock_name_cache()
+
+    def _ensure_stock_name_cache(self) -> None:
+        """确保股票名称缓存属性已初始化（兼容 __new__ 直接构造的测试实例）。"""
+        if not hasattr(self, '_stock_name_cache_lock'):
+            self._stock_name_cache_lock = RLock()
+        if not hasattr(self, '_stock_name_cache_file'):
+            self._stock_name_cache_file = Path(__file__).parent.parent / "cache" / "stock_names.json"
+        if not hasattr(self, '_stock_name_cache'):
+            self._stock_name_cache = self._load_stock_name_cache()
+
+    def _load_stock_name_cache(self) -> Dict[str, str]:
+        """从磁盘加载股票名称缓存，失败时返回空字典。"""
+        try:
+            if self._stock_name_cache_file.exists():
+                data = json.loads(self._stock_name_cache_file.read_text(encoding="utf-8"))
+                if isinstance(data, dict):
+                    logger.info(f"[股票名称] 从磁盘加载缓存: {len(data)} 条记录")
+                    return data
+        except Exception as e:
+            logger.warning(f"[股票名称] 加载磁盘缓存失败，将使用空缓存: {e}")
+        return {}
+
+    def _save_stock_name_cache(self) -> None:
+        """将内存中的股票名称缓存写入磁盘（持锁外调用，内部不加锁）。"""
+        try:
+            self._stock_name_cache_file.parent.mkdir(parents=True, exist_ok=True)
+            self._stock_name_cache_file.write_text(
+                json.dumps(self._stock_name_cache, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+        except Exception as e:
+            logger.warning(f"[股票名称] 写入磁盘缓存失败: {e}")
 
     def _get_fundamental_cache_key(self, stock_code: str, budget_seconds: Optional[float] = None) -> str:
         """生成基本面缓存 key（包含预算分桶以避免低预算结果污染高预算请求）。"""
@@ -1200,30 +1238,31 @@ class DataFetcherManager:
         Returns:
             股票中文名称，所有数据源都失败则返回 None
         """
+        self._ensure_stock_name_cache()
         # Normalize code (strip SH/SZ prefix etc.)
         stock_code = normalize_stock_code(stock_code)
         static_name = STOCK_NAME_MAP.get(stock_code)
 
-        # 1. 先检查缓存
-        if hasattr(self, '_stock_name_cache') and stock_code in self._stock_name_cache:
-            return self._stock_name_cache[stock_code]
-        
-        # 初始化缓存
-        if not hasattr(self, '_stock_name_cache'):
-            self._stock_name_cache = {}
-        
+        # 1. 先检查内存+磁盘双层缓存
+        with self._stock_name_cache_lock:
+            if stock_code in self._stock_name_cache:
+                return self._stock_name_cache[stock_code]
+
+        def _cache_and_return(name: str) -> str:
+            with self._stock_name_cache_lock:
+                self._stock_name_cache[stock_code] = name
+                self._save_stock_name_cache()
+            return name
+
         # 2. 尝试从实时行情中获取（最快，可按需禁用）
         if allow_realtime:
             quote = self.get_realtime_quote(stock_code)
             if quote and hasattr(quote, 'name') and is_meaningful_stock_name(getattr(quote, 'name', ''), stock_code):
-                name = quote.name
-                self._stock_name_cache[stock_code] = name
-                logger.info(f"[股票名称] 从实时行情获取: {stock_code} -> {name}")
-                return name
+                logger.info(f"[股票名称] 从实时行情获取: {stock_code} -> {quote.name}")
+                return _cache_and_return(quote.name)
 
         if is_meaningful_stock_name(static_name, stock_code):
-            self._stock_name_cache[stock_code] = static_name
-            return static_name
+            return _cache_and_return(static_name)
 
         # 3. 依次尝试各个数据源
         for fetcher in self._fetchers:
@@ -1231,9 +1270,8 @@ class DataFetcherManager:
                 try:
                     name = fetcher.get_stock_name(stock_code)
                     if is_meaningful_stock_name(name, stock_code):
-                        self._stock_name_cache[stock_code] = name
                         logger.info(f"[股票名称] 从 {fetcher.name} 获取: {stock_code} -> {name}")
-                        return name
+                        return _cache_and_return(name)
                 except Exception as e:
                     logger.debug(f"[股票名称] {fetcher.name} 获取失败: {e}")
                     continue
@@ -1300,43 +1338,49 @@ class DataFetcherManager:
         Returns:
             {股票代码: 股票名称} 字典
         """
+        self._ensure_stock_name_cache()
         result = {}
         missing_codes = set(stock_codes)
-        
+
         # 1. 先检查缓存
-        if not hasattr(self, '_stock_name_cache'):
-            self._stock_name_cache = {}
-        
-        for code in stock_codes:
-            if code in self._stock_name_cache:
-                result[code] = self._stock_name_cache[code]
-                missing_codes.discard(code)
-        
+        with self._stock_name_cache_lock:
+            for code in stock_codes:
+                if code in self._stock_name_cache:
+                    result[code] = self._stock_name_cache[code]
+                    missing_codes.discard(code)
+
         if not missing_codes:
             return result
-        
+
         # 2. 尝试批量获取股票列表
+        bulk_updated = False
         for fetcher in self._fetchers:
             if hasattr(fetcher, 'get_stock_list') and missing_codes:
                 try:
                     stock_list = fetcher.get_stock_list()
                     if stock_list is not None and not stock_list.empty:
-                        for _, row in stock_list.iterrows():
-                            code = row.get('code')
-                            name = row.get('name')
-                            if code and name:
-                                self._stock_name_cache[code] = name
-                                if code in missing_codes:
-                                    result[code] = name
-                                    missing_codes.discard(code)
-                        
+                        with self._stock_name_cache_lock:
+                            for _, row in stock_list.iterrows():
+                                code = row.get('code')
+                                name = row.get('name')
+                                if code and name:
+                                    self._stock_name_cache[code] = name
+                                    bulk_updated = True
+                                    if code in missing_codes:
+                                        result[code] = name
+                                        missing_codes.discard(code)
+
                         if not missing_codes:
                             break
-                        
+
                         logger.info(f"[股票名称] 从 {fetcher.name} 批量获取完成，剩余 {len(missing_codes)} 个待查")
                 except Exception as e:
                     logger.debug(f"[股票名称] {fetcher.name} 批量获取失败: {e}")
                     continue
+
+        if bulk_updated:
+            with self._stock_name_cache_lock:
+                self._save_stock_name_cache()
         
         # 3. 逐个获取剩余的
         for code in list(missing_codes):

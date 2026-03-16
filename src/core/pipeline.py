@@ -55,7 +55,8 @@ class StockAnalysisPipeline:
         source_message: Optional[BotMessage] = None,
         query_id: Optional[str] = None,
         query_source: Optional[str] = None,
-        save_context_snapshot: Optional[bool] = None
+        save_context_snapshot: Optional[bool] = None,
+        force_update: bool = False,
     ):
         """
         初始化调度器
@@ -72,7 +73,8 @@ class StockAnalysisPipeline:
         self.save_context_snapshot = (
             self.config.save_context_snapshot if save_context_snapshot is None else save_context_snapshot
         )
-        
+        self.force_update = force_update  # --update 模式：跳过盘后缓存
+
         # 初始化各模块
         self.db = get_db()
         self.fetcher_manager = DataFetcherManager()
@@ -982,20 +984,50 @@ class StockAnalysisPipeline:
             AnalysisResult 或 None
         """
         logger.info(f"========== 开始处理 {code} ==========")
-        
+
         try:
+            # ── 盘后缓存检查（pipeline 路径）────────────────────────────────
+            # 18:00 之后若当天已有缓存，直接返回，不重跑 AI 也不写新记录。
+            # force_update=True（--update 参数）时跳过，强制重新分析。
+            if not skip_analysis and not self.force_update:
+                from src.repositories.analysis_repo import AnalysisRepository
+                from src.enums import ReportType as _RT
+                _repo = AnalysisRepository()
+                _cached = _repo.get_post_close_cache(code, report_type.value)
+                if _cached is not None:
+                    result = _repo.build_analysis_result_from_cache(_cached)
+                    if result is not None:
+                        logger.info(
+                            f"[盘后缓存] {code} 命中今日缓存（id={_cached.id}），"
+                            f"跳过重新分析，不写入新记录"
+                        )
+                        # 单股推送仍使用缓存结果
+                        if single_stock_notify and self.notifier.is_available():
+                            try:
+                                if report_type == ReportType.FULL:
+                                    report_content = self.notifier.generate_dashboard_report([result])
+                                elif report_type == ReportType.BRIEF:
+                                    report_content = self.notifier.generate_brief_report([result])
+                                else:
+                                    report_content = self.notifier.generate_single_stock_report(result)
+                                self.notifier.send(report_content, email_stock_codes=[code])
+                            except Exception as _e:
+                                logger.error(f"[{code}] 缓存命中单股推送异常: {_e}")
+                        return result
+            # ────────────────────────────────────────────────────────────────
+
             # Step 1: 获取并保存数据
             success, error = self.fetch_and_save_stock_data(code)
-            
+
             if not success:
                 logger.warning(f"[{code}] 数据获取失败: {error}")
                 # 即使获取失败，也尝试用已有数据分析
-            
+
             # Step 2: AI 分析
             if skip_analysis:
                 logger.info(f"[{code}] 跳过 AI 分析（dry-run 模式）")
                 return None
-            
+
             effective_query_id = analysis_query_id or self.query_id or uuid.uuid4().hex
             result = self.analyze_stock(code, report_type, query_id=effective_query_id)
             
