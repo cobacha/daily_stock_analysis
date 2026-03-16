@@ -4,6 +4,7 @@ import { ReportOverview } from './ReportOverview';
 import { ReportStrategy } from './ReportStrategy';
 import { ReportNews } from './ReportNews';
 import { ReportDetails } from './ReportDetails';
+import { ReportPriceHistory } from './ReportPriceHistory';
 
 interface ReportSummaryProps {
   data: AnalysisResult | AnalysisReport;
@@ -37,6 +38,9 @@ export const ReportSummary: React.FC<ReportSummaryProps> = ({
         summary={summary}
         isHistory={isHistory}
       />
+
+      {/* 今年价格走势区 */}
+      <ReportPriceHistory stockCode={meta.stockCode} />
 
       {/* 策略点位区 */}
       <ReportStrategy strategy={strategy} />

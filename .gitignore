@@ -10,6 +10,9 @@
 /test_*.py
 !test_env.py
 
+# 股票名称磁盘缓存（运行时自动生成）
+cache/
+
 # Python
 __pycache__/
 *.py[cod]
