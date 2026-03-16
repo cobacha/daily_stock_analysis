@@ -21,7 +21,7 @@ interface ChartPoint {
   label: string;
 }
 
-type PeriodKey = 'today' | '5d' | '10d' | 'month' | 'ytd';
+type PeriodKey = 'today' | '5d' | '10d' | 'month' | 'quarter';
 
 interface PeriodConfig {
   key: PeriodKey;
@@ -79,24 +79,22 @@ const PERIODS: PeriodConfig[] = [
     },
   },
   {
-    key: 'ytd',
-    label: '今年',
-    statLabels: ['年初开盘', '最新收盘', '年内最高', '年内最低'],
-    filter: (data, now) => data.filter((d) => d.date.startsWith(String(now.getFullYear()))),
+    key: 'quarter',
+    label: '季度',
+    statLabels: ['季初开盘', '最新收盘', '季内最高', '季内最低'],
+    filter: (data, now) => {
+      // 获取本季度第一天
+      const quarter = Math.floor(now.getMonth() / 3);
+      const quarterStartMonth = quarter * 3 + 1;
+      const quarterStart = `${now.getFullYear()}-${String(quarterStartMonth).padStart(2, '0')}`;
+      return data.filter((d) => d.date >= quarterStart);
+    },
     xLabel: (date, idx, total) => {
-      const step = Math.max(1, Math.floor(total / 6));
-      return idx % step === 0 || idx === total - 1 ? mmdd(date) : '';
+      const step = Math.max(1, Math.floor(total / 4));
+      return idx % step === 0 || idx === total - 1 ? mmdd2(date) : '';
     },
   },
 ];
-
-// 计算 YTD 天数（加 buffer）
-function calcYtdDays(): number {
-  const now = new Date();
-  const jan1 = new Date(now.getFullYear(), 0, 1);
-  const diff = Math.ceil((now.getTime() - jan1.getTime()) / (1000 * 60 * 60 * 24));
-  return Math.min(Math.max(diff + 5, 15), 365);
-}
 
 const CustomTooltip = ({
   active,
@@ -120,9 +118,9 @@ export const ReportPriceHistory: React.FC<ReportPriceHistoryProps> = ({ stockCod
   const [allKlines, setAllKlines] = useState<KLineData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activePeriod, setActivePeriod] = useState<PeriodKey>('ytd');
+  const [activePeriod, setActivePeriod] = useState<PeriodKey>('quarter');
 
-  // 拉取一次 YTD 数据，切换周期只做客户端过滤
+  // 拉取半年数据（覆盖所有周期），切换周期只做客户端过滤
   useEffect(() => {
     if (!stockCode) return;
     let cancelled = false;
@@ -130,7 +128,7 @@ export const ReportPriceHistory: React.FC<ReportPriceHistoryProps> = ({ stockCod
     setError(null);
 
     stocksApi
-      .getHistory(stockCode, calcYtdDays())
+      .getHistory(stockCode, 180) // 拉取180天数据覆盖所有周期
       .then((res) => {
         if (cancelled) return;
         setAllKlines(res.data);
