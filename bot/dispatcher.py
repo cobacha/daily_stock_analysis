@@ -254,6 +254,18 @@ class CommandDispatcher:
                     "你好！我是股票分析助手。\n"
                     f"发送 `{self.command_prefix}help` 查看可用命令。"
                 )
+            # 非命令消息，检查是否看起来像股票代码
+            stock_code = self._detect_stock_code(message.content)
+            if stock_code:
+                # 自动调用分析命令
+                logger.info(f"[Dispatcher] 检测到股票代码: {stock_code}，自动执行分析")
+                command = self.get_command("analyze")
+                if command:
+                    try:
+                        return command.execute(message, [stock_code])
+                    except Exception as e:
+                        logger.error(f"[Dispatcher] 自动分析失败: {e}")
+                        return BotResponse.error_response(f"分析失败: {str(e)[:100]}")
             # 非命令消息，不处理
             return BotResponse.text_response("")
         
@@ -292,13 +304,49 @@ class CommandDispatcher:
     def set_help_command_getter(self, getter: Callable) -> None:
         """
         设置帮助命令的命令列表获取器
-        
+
         用于让 HelpCommand 获取命令列表。
-        
+
         Args:
             getter: 回调函数，返回命令列表
         """
         self._help_command_getter = getter
+
+    def _detect_stock_code(self, content: str) -> Optional[str]:
+        """
+        检测消息内容是否包含股票代码
+
+        支持：
+        - A股：6位数字（如 600519）
+        - 港股：HK+5位数字（如 HK00700）
+        - 美股：1-5个大写字母，可带后缀（如 AAPL、TSLA、MSFT）
+
+        Args:
+            content: 消息内容
+
+        Returns:
+            股票代码，如果未检测到则返回 None
+        """
+        import re
+
+        text = content.strip()
+
+        # A股：6位数字
+        a_stock_match = re.match(r'^(\d{6})$', text)
+        if a_stock_match:
+            return a_stock_match.group(1)
+
+        # 港股：HK+5位数字
+        hk_stock_match = re.match(r'^(HK\d{5})$', text, re.IGNORECASE)
+        if hk_stock_match:
+            return hk_stock_match.group(1).upper()
+
+        # 美股：1-5个大写字母（可能带后缀如 .SP）
+        us_stock_match = re.match(r'^([A-Z]{1,5})(?:\.[A-Z]{1,2})?$', text)
+        if us_stock_match:
+            return us_stock_match.group(1)
+
+        return None
 
 
 # 全局分发器实例
