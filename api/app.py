@@ -84,24 +84,59 @@ def create_app(static_dir: Optional[Path] = None) -> FastAPI:
         "http://127.0.0.1:5173",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "http://localhost:19888",
+        "http://127.0.0.1:19888",
     ]
     
     # 从环境变量添加额外的允许来源
     extra_origins = os.environ.get("CORS_ORIGINS", "")
     if extra_origins:
         allowed_origins.extend([o.strip() for o in extra_origins.split(",") if o.strip()])
-    
-    # 允许所有来源（开发/演示用）
+
+    # 允许所有来源（开发/演示用）- 不能用 * 因为 withCredentials=true
     if os.environ.get("CORS_ALLOW_ALL", "").lower() == "true":
-        allowed_origins = ["*"]
-    
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=allowed_origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+        # 添加常用端口
+        ports = [3000, 5173, 8000, 8080, 8888, 19888, 30000]
+        allowed_origins.extend([f"http://localhost:{p}" for p in ports])
+        allowed_origins.extend([f"http://127.0.0.1:{p}" for p in ports])
+        # 不带端口的也加一下（某些情况）
+        allowed_origins.extend(["http://localhost", "http://127.0.0.1"])
+        # 自动检测本机所有 IP 并添加（支持换 WiFi 环境）
+        try:
+            import socket
+            hostname = socket.gethostname()
+            # 获取所有 IP 地址
+            import subprocess
+            result = subprocess.run(
+                ["ipconfig", "getifaddr", "en0"],
+                capture_output=True, text=True
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                local_ip = result.stdout.strip()
+                for port in ports:
+                    allowed_origins.append(f"http://{local_ip}:{port}")
+        except Exception:
+            pass
+
+    # 开发模式：使用自定义 CORS 中间件，动态返回请求的 Origin
+    if os.environ.get("CORS_DYNAMIC", "").lower() == "true":
+        @app.middleware("http")
+        async def dynamic_cors(request, call_next):
+            origin = request.headers.get("origin")
+            if origin:
+                response = await call_next(request)
+                response.headers["Access-Control-Allow-Origin"] = origin
+                response.headers["Access-Control-Allow-Credentials"] = "true"
+                return response
+            return await call_next(request)
+    else:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=allowed_origins,
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
     add_auth_middleware(app)
     
