@@ -78,6 +78,8 @@ class StockAnalysisPipeline:
         # 初始化各模块
         self.db = get_db()
         self.fetcher_manager = DataFetcherManager()
+        from src.repositories.analysis_repo import AnalysisRepository
+        self.analysis_repo = AnalysisRepository(self.db)
         # 不再单独创建 akshare_fetcher，统一使用 fetcher_manager 获取增强数据
         self.trend_analyzer = StockTrendAnalyzer()  # 趋势分析器
         self.analyzer = GeminiAnalyzer()
@@ -986,16 +988,13 @@ class StockAnalysisPipeline:
         logger.info(f"========== 开始处理 {code} ==========")
 
         try:
-            # ── 盘后缓存检查（pipeline 路径）────────────────────────────────
-            # 18:00 之后若当天已有缓存，直接返回，不重跑 AI 也不写新记录。
+            # ── 当日缓存检查（pipeline 路径）────────────────────────────────
+            # 当天已分析过的股票直接返回缓存结果，不重跑 AI 也不写新记录。
             # force_update=True（--update 参数）时跳过，强制重新分析。
             if not skip_analysis and not self.force_update:
-                from src.repositories.analysis_repo import AnalysisRepository
-                from src.enums import ReportType as _RT
-                _repo = AnalysisRepository()
-                _cached = _repo.get_post_close_cache(code, report_type.value)
+                _cached = self.analysis_repo.get_post_close_cache(code, report_type.value)
                 if _cached is not None:
-                    result = _repo.build_analysis_result_from_cache(_cached)
+                    result = self.analysis_repo.build_analysis_result_from_cache(_cached)
                     if result is not None:
                         logger.info(
                             f"[盘后缓存] {code} 命中今日缓存（id={_cached.id}），"

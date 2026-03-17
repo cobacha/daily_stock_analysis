@@ -104,10 +104,37 @@ def run_market_review(
             date_str = datetime.now().strftime('%Y%m%d')
             report_filename = f"market_review_{date_str}.md"
             filepath = notifier.save_report_to_file(
-                f"# 🎯 大盘复盘\n\n{review_report}", 
+                f"# 🎯 大盘复盘\n\n{review_report}",
                 report_filename
             )
             logger.info(f"大盘复盘报告已保存: {filepath}")
+
+            # 写入 DB 缓存，使 CLI 和 API 路径共享同一份当日缓存
+            try:
+                from src.services.market_service import MarketService
+                _overview_dict = {}
+                if market_overview is not None:
+                    _overview_dict = {
+                        "date": getattr(market_overview, "date", ""),
+                        "indices": [idx.to_dict() for idx in getattr(market_overview, "indices", [])],
+                        "up_count": getattr(market_overview, "up_count", 0),
+                        "down_count": getattr(market_overview, "down_count", 0),
+                        "flat_count": getattr(market_overview, "flat_count", 0),
+                        "limit_up_count": getattr(market_overview, "limit_up_count", 0),
+                        "limit_down_count": getattr(market_overview, "limit_down_count", 0),
+                        "total_amount": getattr(market_overview, "total_amount", 0.0),
+                        "top_sectors": getattr(market_overview, "top_sectors", []),
+                        "bottom_sectors": getattr(market_overview, "bottom_sectors", []),
+                        "review_text": review_report,
+                    }
+                MarketService().save_review(
+                    region=effective_region if effective_region in ('cn', 'us') else 'cn',
+                    overview_dict=_overview_dict,
+                    review_text=review_report,
+                )
+                logger.info("[大盘复盘] 已写入 DB 缓存")
+            except Exception as _e:
+                logger.warning(f"[大盘复盘] 写入 DB 缓存失败（不影响报告生成）: {_e}")
             
             # 推送通知（合并模式下跳过，由 main 层统一发送）
             if merge_notification and send_notification:

@@ -30,6 +30,8 @@ from src.services.task_queue import AnalysisTaskQueue
 class AnalysisApiContractTestCase(unittest.TestCase):
     def test_report_type_full_maps_to_full_pipeline_mode(self) -> None:
         service = object.__new__(AnalysisService)
+        service.repo = MagicMock()
+        service.repo.get_post_close_cache.return_value = None  # 模拟盘中无缓存
         pipeline_instance = MagicMock()
         pipeline_instance.process_single_stock.return_value = object()
 

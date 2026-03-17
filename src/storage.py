@@ -1105,6 +1105,8 @@ class DatabaseManager:
         days: int = 30,
         limit: int = 50,
         exclude_query_id: Optional[str] = None,
+        report_type: Optional[str] = None,
+        today_only: bool = False,
     ) -> List[AnalysisHistory]:
         """
         Query analysis history records.
@@ -1113,6 +1115,8 @@ class DatabaseManager:
         - If query_id is provided, perform exact lookup and ignore days window.
         - If query_id is not provided, apply days-based time filtering.
         - exclude_query_id: exclude records with this query_id (for history comparison).
+        - report_type: optional filter by report type at DB level.
+        - today_only: if True, restrict to records created today (local date).
         """
         cutoff_date = datetime.now() - timedelta(days=days)
 
@@ -1130,6 +1134,15 @@ class DatabaseManager:
             # exclude_query_id only applies when not doing exact lookup (query_id is None)
             if exclude_query_id and not query_id:
                 conditions.append(AnalysisHistory.query_id != exclude_query_id)
+
+            if report_type:
+                conditions.append(AnalysisHistory.report_type == report_type)
+
+            if today_only:
+                today_start = datetime.combine(datetime.now().date(), datetime.min.time())
+                tomorrow_start = today_start + timedelta(days=1)
+                conditions.append(AnalysisHistory.created_at >= today_start)
+                conditions.append(AnalysisHistory.created_at < tomorrow_start)
 
             results = session.execute(
                 select(AnalysisHistory)
@@ -1165,9 +1178,12 @@ class DatabaseManager:
         
         with self.get_session() as session:
             conditions = []
-            
+
             if code:
                 conditions.append(AnalysisHistory.code == code)
+            else:
+                # 排除大盘虚拟代码（MARKET_CN / MARKET_US），避免被当成真实股票查询
+                conditions.append(~AnalysisHistory.code.like("MARKET_%"))
             if start_date:
                 # created_at >= start_date 00:00:00
                 conditions.append(AnalysisHistory.created_at >= datetime.combine(start_date, datetime.min.time()))

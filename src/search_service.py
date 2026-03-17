@@ -1482,7 +1482,35 @@ class SearchService:
                 for k in oldest:
                     del self._cache[k]
         self._cache[key] = (time.time(), response)
-    
+
+    @staticmethod
+    def _filter_stale_results(results: list, max_age_days: int) -> list:
+        """过滤掉 published_date 明显超出预期时间范围的搜索结果。
+
+        搜索引擎的时间过滤参数（days=N）有时不准确，会返回数年前的旧文章。
+        本方法对已有 published_date 的条目做二次校验，避免旧内容干扰分析。
+
+        未包含日期信息的条目默认保留。
+        """
+        import re as _re
+        now = datetime.now()
+        kept = []
+        for r in results:
+            if not getattr(r, 'published_date', None):
+                kept.append(r)
+                continue
+            # 从日期字符串中提取年份数字（兼容 ISO 8601、中文日期等格式）
+            m = _re.search(r'(\d{4})', r.published_date)
+            if not m:
+                kept.append(r)
+                continue
+            pub_year = int(m.group(1))
+            # 粗略估算：以年份差换算天数
+            approx_age_days = (now.year - pub_year) * 365
+            if approx_age_days <= max_age_days:
+                kept.append(r)
+        return kept
+
     def search_stock_news(
         self,
         stock_code: str,
@@ -1542,15 +1570,28 @@ class SearchService:
         for provider in self._providers:
             if not provider.is_available:
                 continue
-            
+
             response = provider.search(query, max_results, days=search_days)
-            
+
             if response.success and response.results:
-                logger.info(f"使用 {provider.name} 搜索成功")
-                self._put_cache(cache_key, response)
-                return response
-            else:
-                logger.warning(f"{provider.name} 搜索失败: {response.error_message}，尝试下一个引擎")
+                # 过滤掉 published_date 明显过期的条目（搜索引擎时间过滤有时不准确）
+                filtered = self._filter_stale_results(response.results, max_age_days=search_days * 30)
+                if len(filtered) < len(response.results):
+                    logger.debug(
+                        f"[新闻过滤] 过滤掉 {len(response.results) - len(filtered)} 条过期结果"
+                    )
+                    response = SearchResponse(
+                        query=response.query,
+                        results=filtered,
+                        provider=response.provider,
+                        success=bool(filtered),
+                        error_message=None if filtered else "所有结果均为过期内容",
+                    )
+                if response.success and response.results:
+                    logger.info(f"使用 {provider.name} 搜索成功")
+                    self._put_cache(cache_key, response)
+                    return response
+            logger.warning(f"{provider.name} 搜索失败: {response.error_message}，尝试下一个引擎")
         
         # 所有引擎都失败
         return SearchResponse(

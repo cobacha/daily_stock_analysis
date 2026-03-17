@@ -88,10 +88,12 @@ class AnalysisService:
             config = get_config()
 
             # 创建分析流水线
+            # 已在上方完成盘后缓存检查，传入 force_update=True 跳过 pipeline 内的重复检查
             pipeline = StockAnalysisPipeline(
                 config=config,
                 query_id=query_id,
-                query_source="api"
+                query_source="api",
+                force_update=True,
             )
 
             # 执行分析

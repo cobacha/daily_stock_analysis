@@ -765,7 +765,7 @@ class GeminiAnalyzer:
         """Check if LiteLLM is properly configured with at least one API key."""
         return self._router is not None or self._litellm_available
 
-    def _call_litellm(self, prompt: str, generation_config: dict) -> Tuple[str, str, Dict[str, Any]]:
+    def _call_litellm(self, prompt: str, generation_config: dict, system_prompt: Optional[str] = None) -> Tuple[str, str, Dict[str, Any]]:
         """Call LLM via litellm with fallback across configured models.
 
         When channels/YAML are configured, every model goes through the Router
@@ -798,12 +798,17 @@ class GeminiAnalyzer:
         for model in models_to_try:
             try:
                 model_short = model.split("/")[-1] if "/" in model else model
+                # system_prompt=None → 使用默认的股票分析 prompt
+                # system_prompt=""   → 不附加 system 消息（用于大盘复盘等）
+                # system_prompt=str  → 使用调用方指定的 prompt
+                effective_system = self.SYSTEM_PROMPT if system_prompt is None else system_prompt
+                messages: list = []
+                if effective_system:
+                    messages.append({"role": "system", "content": effective_system})
+                messages.append({"role": "user", "content": prompt})
                 call_kwargs: Dict[str, Any] = {
                     "model": model,
-                    "messages": [
-                        {"role": "system", "content": self.SYSTEM_PROMPT},
-                        {"role": "user", "content": prompt},
-                    ],
+                    "messages": messages,
                     "temperature": temperature,
                     "max_tokens": max_tokens,
                 }
@@ -851,6 +856,7 @@ class GeminiAnalyzer:
         prompt: str,
         max_tokens: int = 2048,
         temperature: float = 0.7,
+        system_prompt: Optional[str] = None,
     ) -> Optional[str]:
         """Public entry point for free-form text generation.
 
@@ -859,9 +865,11 @@ class GeminiAnalyzer:
         _litellm_available, _router, _model, _use_openai, or _use_anthropic.
 
         Args:
-            prompt:      Text prompt to send to the LLM.
-            max_tokens:  Maximum tokens in the response (default 2048).
-            temperature: Sampling temperature (default 0.7).
+            prompt:        Text prompt to send to the LLM.
+            max_tokens:    Maximum tokens in the response (default 2048).
+            temperature:   Sampling temperature (default 0.7).
+            system_prompt: Override the default stock-analysis system prompt.
+                           Pass an empty string "" to send no system message.
 
         Returns:
             Response text, or None if the LLM call fails (error is logged).
@@ -870,6 +878,7 @@ class GeminiAnalyzer:
             result = self._call_litellm(
                 prompt,
                 generation_config={"max_tokens": max_tokens, "temperature": temperature},
+                system_prompt=system_prompt,
             )
             if isinstance(result, tuple):
                 text, model_used, usage = result
