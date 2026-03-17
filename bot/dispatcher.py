@@ -314,12 +314,13 @@ class CommandDispatcher:
 
     def _detect_stock_code(self, content: str) -> Optional[str]:
         """
-        检测消息内容是否包含股票代码
+        检测消息内容是否包含股票代码或股票名称
 
         支持：
         - A股：6位数字（如 600519）
         - 港股：HK+5位数字（如 HK00700）
         - 美股：1-5个大写字母，可带后缀（如 AAPL、TSLA、MSFT）
+        - 股票名称（如 茅台、腾讯、阿里巴巴）
 
         Args:
             content: 消息内容
@@ -343,6 +344,36 @@ class CommandDispatcher:
 
         # 美股：1-5个大写字母（可能带后缀如 .SP）
         us_stock_match = re.match(r'^([A-Z]{1,5})(?:\.[A-Z]{1,2})?$', text)
+        if us_stock_match:
+            return us_stock_match.group(1)
+
+        # 尝试解析股票名称（如 "茅台"、"腾讯"、"分析茅台"）
+        # 去除常见前缀词
+        name_patterns = [
+            r'^分析(.+?)$',  # 分析茅台
+            r'^查(.+?)$',    # 查茅台
+            r'^看(.+?)$',    # 看腾讯
+            r'^分析一下(.+?)$',  # 分析一下腾讯
+            r'^帮我分析(.+?)$',  # 帮我分析腾讯
+            r'^股票(.+?)$',  # 股票茅台
+            r'^(.+?)$',      # 任意文本
+        ]
+
+        for pattern in name_patterns:
+            match = re.match(pattern, text)
+            if match:
+                stock_name = match.group(1).strip()
+                if stock_name:
+                    try:
+                        from src.services.name_to_code_resolver import resolve_name_to_code
+                        code = resolve_name_to_code(stock_name)
+                        if code:
+                            logger.info(f"[Dispatcher] 检测到股票名称: {stock_name} -> {code}")
+                            return code
+                    except Exception as e:
+                        logger.debug(f"[Dispatcher] 股票名称解析失败: {e}")
+
+        return None
         if us_stock_match:
             return us_stock_match.group(1)
 
