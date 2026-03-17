@@ -1012,3 +1012,43 @@ textarea {
   background: rgba(0, 0, 0, 0.2);
 }
 
+/* ── Text color overrides ──────────────────────────────────────────────────
+   Many components hardcode text-white for dark-mode heading/body text.
+   In light mode we remap to text-primary. Elements with intentionally
+   colored backgrounds (danger buttons, gradient buttons) get exceptions.
+   ─────────────────────────────────────────────────────────────────────── */
+[data-theme="light"] .text-white {
+  color: var(--text-primary);
+}
+
+/* Preserve white text on colored/dark backgrounds */
+[data-theme="light"] .bg-danger.text-white,
+[data-theme="light"] .from-cyan.text-white,
+[data-theme="light"] .dock-logo.text-white,
+[data-theme="light"] .btn-primary {
+  color: #ffffff;
+}
+
+/* Prose-invert: override white headings/strong/table-headers for light mode */
+[data-theme="light"] .prose :is(h1, h2, h3, h4, h5, h6) {
+  color: var(--text-primary);
+}
+[data-theme="light"] .prose strong {
+  color: var(--text-primary);
+}
+[data-theme="light"] .prose th {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+[data-theme="light"] .prose td {
+  border-color: rgba(0, 0, 0, 0.08);
+}
+[data-theme="light"] .prose hr,
+[data-theme="light"] .prose h1 {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+[data-theme="light"] .prose pre {
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
