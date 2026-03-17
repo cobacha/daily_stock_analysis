@@ -75,6 +75,9 @@ verify_*.py
 # ignore claude files
 .claude/
 CLAUDE.md
+.playwright-mcp/
+.superpowers/
+litellm-env/
 
 # ignore static files
 static/
