@@ -125,7 +125,7 @@ const CustomTooltip = ({
   return (
     <div className="bg-elevated border border-white/10 [[data-theme=light]_&]:border-black/8 rounded-lg px-3 py-2 text-xs shadow-xl">
       <p className="text-muted-text mb-0.5">{label}</p>
-      <p className="text-white font-mono font-semibold">{payload[0].value.toFixed(2)}</p>
+      <p className="text-primary font-mono font-semibold">{payload[0].value.toFixed(2)}</p>
     </div>
   );
 };
