@@ -124,7 +124,7 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
             cy={width / 2}
             r={radius}
             fill="none"
-            stroke="rgba(255, 255, 255, 0.05)"
+            stroke="var(--gauge-track, rgba(255, 255, 255, 0.05))"
             strokeWidth={stroke}
             strokeLinecap="round"
             strokeDasharray={`${arcLength} ${circumference}`}
@@ -162,7 +162,7 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
 
         {/* Center value */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={cn('font-bold text-white', fontSize)} style={{ textShadow: `0 0 30px ${glowColor}` }}>
+          <span className={cn('font-bold text-white gauge-text', fontSize)} style={{ textShadow: `0 0 30px ${glowColor}` }}>
             {displayScore}
           </span>
           {showLabel && (

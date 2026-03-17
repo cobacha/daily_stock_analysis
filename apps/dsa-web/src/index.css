@@ -220,7 +220,7 @@ body {
 }
 
 .gauge-track {
-  stroke: rgba(255, 255, 255, 0.05);
+  stroke: var(--gauge-track, rgba(255, 255, 255, 0.05));
   fill: none;
 }
 
@@ -1010,5 +1010,128 @@ textarea {
 
 [data-theme="light"] ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.2);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BG-WHITE OVERRIDES — flip to black-on-light
+   ───────────────────────────────────────────────────────────── */
+[data-theme="light"] .bg-white\/4 { background-color: rgba(0, 0, 0, 0.02); }
+[data-theme="light"] .bg-white\/5 { background-color: rgba(0, 0, 0, 0.03); }
+[data-theme="light"] .bg-white\/8 { background-color: rgba(0, 0, 0, 0.04); }
+[data-theme="light"] .bg-white\/10 { background-color: rgba(0, 0, 0, 0.05); }
+[data-theme="light"] .bg-white\/15 { background-color: rgba(0, 0, 0, 0.08); }
+[data-theme="light"] .bg-white\/20 { background-color: rgba(0, 0, 0, 0.10); }
+[data-theme="light"] .hover\:bg-white\/5:hover { background-color: rgba(0, 0, 0, 0.04); }
+[data-theme="light"] .hover\:bg-white\/10:hover { background-color: rgba(0, 0, 0, 0.06); }
+[data-theme="light"] .hover\:bg-white\/20:hover { background-color: rgba(0, 0, 0, 0.12); }
+[data-theme="light"] .group:hover .group-hover\:bg-white\/5 { background-color: rgba(0, 0, 0, 0.04); }
+[data-theme="light"] .group-hover\:bg-white\/5 { background-color: rgba(0, 0, 0, 0.03); }
+[data-theme="light"] .group-hover\:bg-white\/10 { background-color: rgba(0, 0, 0, 0.06); }
+
+/* ─────────────────────────────────────────────────────────────
+   TEXT GRAY OVERRIDES — ensure visibility on light backgrounds
+   ───────────────────────────────────────────────────────────── */
+[data-theme="light"] .text-gray-100 { color: rgba(0, 0, 0, 0.75); }
+[data-theme="light"] .text-gray-200 { color: rgba(0, 0, 0, 0.65); }
+[data-theme="light"] .text-gray-300 { color: rgba(0, 0, 0, 0.55); }
+[data-theme="light"] .text-gray-400 { color: rgba(0, 0, 0, 0.45); }
+[data-theme="light"] .text-gray-500 { color: rgba(0, 0, 0, 0.55); }
+
+/* ─────────────────────────────────────────────────────────────
+   JSON VIEWER DARK BG — keep dark in light mode
+   ───────────────────────────────────────────────────────────── */
+[data-theme="light"] .bg-slate-700 { background-color: #334155; }
+[data-theme="light"] .bg-slate-900\/80 { background-color: rgba(15, 23, 42, 0.85); }
+[data-theme="light"] .hover\:bg-slate-600:hover { background-color: #475569; }
+[data-theme="light"] .border-slate-700\/50 { border-color: rgba(51, 65, 85, 0.5); }
+
+/* ─────────────────────────────────────────────────────────────
+   CONFIRM DIALOG — ensure button visibility in light mode
+   ───────────────────────────────────────────────────────────── */
+[data-theme="light"] .bg-red-500\/80 { background-color: #dc2626; color: #fff; }
+[data-theme="light"] .hover\:bg-red-500:hover { background-color: #b91c1c; }
+[data-theme="light"] .bg-cyan\/80 { background-color: #0ea5e9; color: #fff; }
+[data-theme="light"] .hover\:bg-cyan:hover { background-color: #0284c7; }
+
+/* ─────────────────────────────────────────────────────────────
+   BUTTON DANGER — ensure visibility in light mode
+   ───────────────────────────────────────────────────────────── */
+[data-theme="light"] .bg-danger {
+  background-color: #dc2626;
+}
+[data-theme="light"] .text-white {
+  color: #fff;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SCORE GAUGE — ensure text visibility in light mode
+   ───────────────────────────────────────────────────────────── */
+[data-theme="light"] .gauge-text {
+  color: #1e293b;
+  text-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SCORE GAUGE — background ring visibility in light mode
+   ───────────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --gauge-track: rgba(0, 0, 0, 0.08);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   CHAT PAGE — light mode message styling
+   ───────────────────────────────────────────────────────────── */
+[data-theme="light"] .bg-white\/10 { background-color: rgba(0, 0, 0, 0.06); }
+[data-theme="light"] .bg-white\/5 { background-color: rgba(0, 0, 0, 0.03); }
+
+/* ─────────────────────────────────────────────────────────────
+   GLASS CARD — light mode override
+   ───────────────────────────────────────────────────────────── */
+[data-theme="light"] .glass-card {
+  border-color: rgba(0, 0, 0, 0.08);
+  background: hsl(var(--card) / 0.85);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .glass-card::before {
+  background: linear-gradient(
+    135deg,
+    rgba(37, 99, 235, 0.15) 0%,
+    rgba(111, 97, 241, 0.08) 50%,
+    rgba(0, 0, 0, 0.02) 100%
+  ),
+  linear-gradient(#fff 0 0) content-box,
+  linear-gradient(#fff 0 0);
+}
+
+[data-theme="light"] .glass-card::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(37, 99, 235, 0.08) 50%,
+    transparent 100%
+  );
+}
+
+/* Chat message bubbles - user */
+[data-theme="light"] .bg-cyan\/10 {
+  background-color: rgba(37, 99, 235, 0.1);
+  border-color: rgba(37, 99, 235, 0.2);
+}
+
+/* Chat message bubbles - AI */
+[data-theme="light"] .bg-white\/5.text-secondary-text {
+  background-color: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Chat prose content in light mode */
+[data-theme="light"] .prose-invert {
+  --tw-prose-body: var(--text-primary);
+  --tw-prose-headings: var(--foreground);
+  --tw-prose-links: #2563eb;
+  --tw-prose-bold: var(--foreground);
+  --tw-prose-code: #2563eb;
+  --tw-prose-pre-bg: rgba(0, 0, 0, 0.05);
 }
 
