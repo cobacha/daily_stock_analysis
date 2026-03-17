@@ -72,7 +72,7 @@ export const ReportOverview: React.FC<ReportOverviewProps> = ({
             </div>
 
             {/* 关键结论 */}
-            <div className="border-t border-white/5 pt-4">
+            <div className="border-t border-surface-dim pt-4">
               <span className="label-uppercase">KEY INSIGHTS</span>
               <p className="text-foreground text-sm leading-relaxed mt-1.5 whitespace-pre-wrap text-left">
                 {summary.analysisSummary || '暂无分析结论'}

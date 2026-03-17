@@ -60,7 +60,7 @@ export const ReportDetails: React.FC<ReportDetailsProps> = ({
 
       {/* Record ID */}
       {recordId && (
-        <div className="flex items-center gap-2 text-xs text-muted-text mb-3 pb-3 border-b border-white/5">
+        <div className="flex items-center gap-2 text-xs text-muted-text mb-3 pb-3 border-b border-surface-dim">
           <span>Record ID:</span>
           <code className="font-mono text-xs text-cyan bg-cyan/10 px-1.5 py-0.5 rounded">
             {recordId}

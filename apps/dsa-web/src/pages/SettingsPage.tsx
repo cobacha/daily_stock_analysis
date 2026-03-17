@@ -106,7 +106,7 @@ const SettingsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen px-4 pb-6 pt-4 md:px-6">
-      <header className="mb-4 rounded-2xl border border-white/8 bg-card/80 p-4 backdrop-blur-sm">
+      <header className="mb-4 rounded-2xl border border-surface bg-card/80 p-4 backdrop-blur-sm">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-xl font-semibold text-foreground">系统设置</h1>
@@ -122,13 +122,13 @@ const SettingsPage: React.FC = () => {
               role="switch"
               aria-checked={theme === 'light'}
               onClick={toggle}
-              className="flex items-center gap-2 rounded-xl border border-white/8 bg-white/4 px-3 py-1.5 text-xs text-muted-text transition-colors hover:border-cyan/30 hover:text-primary"
+              className="flex items-center gap-2 rounded-xl border border-surface bg-white/4 px-3 py-1.5 text-xs text-muted-text transition-colors hover:border-cyan/30 hover:text-primary"
               title={theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'}
             >
               <span aria-hidden="true" className={theme === 'dark' ? 'text-cyan font-semibold' : 'text-muted-text'}>
                 ☾
               </span>
-              <span className="relative inline-block h-5 w-9 rounded-full border border-white/10 bg-white/8 transition-colors">
+              <span className="relative inline-block h-5 w-9 rounded-full border border-surface bg-white/8 transition-colors">
                 <span
                   className={`absolute top-0.5 h-4 w-4 rounded-full bg-cyan transition-all duration-200 ${
                     theme === 'dark' ? 'left-0.5' : 'left-4'
@@ -177,7 +177,7 @@ const SettingsPage: React.FC = () => {
         <SettingsLoading />
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_1fr]">
-          <aside className="rounded-2xl border border-white/8 bg-card/60 p-3 backdrop-blur-sm">
+          <aside className="rounded-2xl border border-surface bg-card/60 p-3 backdrop-blur-sm">
             <p className="mb-2 text-xs uppercase tracking-wide text-muted">配置分类</p>
             <div className="space-y-2">
               {categories.map((category) => {
@@ -193,7 +193,7 @@ const SettingsPage: React.FC = () => {
                     className={`w-full rounded-lg border px-3 py-2 text-left transition ${
                       isActive
                         ? 'border-accent bg-cyan/10 text-foreground'
-                        : 'border-white/8 bg-elevated/40 text-secondary hover:border-white/16 hover:text-foreground'
+                        : 'border-surface bg-elevated/40 text-secondary hover:border-surface-strong hover:text-foreground'
                     }`}
                     onClick={() => setActiveCategory(category.category)}
                   >
@@ -208,7 +208,7 @@ const SettingsPage: React.FC = () => {
             </div>
           </aside>
 
-          <section className="space-y-3 rounded-2xl border border-white/8 bg-card/60 p-4 backdrop-blur-sm">
+          <section className="space-y-3 rounded-2xl border border-surface bg-card/60 p-4 backdrop-blur-sm">
             {activeCategory === 'base' ? (
               <div className="space-y-3">
                 <IntelligentImport
@@ -248,7 +248,7 @@ const SettingsPage: React.FC = () => {
                 />
               ))
             ) : (
-              <div className="rounded-xl border border-white/8 bg-elevated/40 p-5 text-sm text-secondary">
+              <div className="rounded-xl border border-surface bg-elevated/40 p-5 text-sm text-secondary">
                 当前分类下暂无配置项。
               </div>
             )}

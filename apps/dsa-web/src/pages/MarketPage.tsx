@@ -45,9 +45,9 @@ const MarketPage: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
-      <div className="sticky top-0 z-10 bg-base border-b border-white/5 px-4 py-3 flex items-center justify-between">
+      <div className="sticky top-0 z-10 bg-base border-b border-surface-dim px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-base font-semibold text-white">大盘分析</h1>
+          <h1 className="text-base font-semibold text-foreground">大盘分析</h1>
           {/* A股/美股 切换 */}
           <div className="flex items-center gap-0.5 bg-elevated rounded-lg p-0.5">
             {(['cn', 'us'] as Region[]).map((r) => (
@@ -56,7 +56,7 @@ const MarketPage: React.FC = () => {
                 type="button"
                 onClick={() => setRegion(r)}
                 className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                  region === r ? 'bg-cyan/15 text-cyan' : 'text-muted-text hover:text-white'
+                  region === r ? 'bg-cyan/15 text-cyan' : 'text-muted-text hover:text-foreground'
                 }`}
               >
                 {REGION_LABELS[r]}
@@ -77,7 +77,7 @@ const MarketPage: React.FC = () => {
           className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5"
         >
           {refreshing ? (
-            <span className="w-3 h-3 border border-white/20 border-t-white rounded-full animate-spin" />
+            <span className="w-3 h-3 border border-surface-strong border-t-white rounded-full animate-spin" />
           ) : (
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -105,12 +105,12 @@ const MarketPage: React.FC = () => {
         {!loading && data && (
           <>
             <Card variant="bordered" padding="md">
-              <h2 className="text-sm font-semibold text-white mb-3">主要指数</h2>
+              <h2 className="text-sm font-semibold text-foreground mb-3">主要指数</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {data.indices.map((idx) => (
                   <div key={idx.code} className={`rounded-lg p-3 ${bgOf(idx.change_pct)}`}>
                     <p className="text-xs text-muted-text mb-1">{idx.name}</p>
-                    <p className="text-lg font-mono font-semibold text-white">{fmt(idx.current)}</p>
+                    <p className="text-lg font-mono font-semibold text-foreground">{fmt(idx.current)}</p>
                     <p className={`text-sm font-mono ${colorOf(idx.change_pct)}`}>
                       {fmtPct(idx.change_pct)}
                       <span className="text-xs ml-1">({fmt(idx.change)})</span>
@@ -122,7 +122,7 @@ const MarketPage: React.FC = () => {
 
             {data.up_count > 0 && (
               <Card variant="bordered" padding="md">
-                <h2 className="text-sm font-semibold text-white mb-3">涨跌统计</h2>
+                <h2 className="text-sm font-semibold text-foreground mb-3">涨跌统计</h2>
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 text-center">
                   {[
                     { label: '上涨', value: data.up_count, color: 'text-[#ff4d4d]' },
@@ -139,7 +139,7 @@ const MarketPage: React.FC = () => {
                 </div>
                 {data.total_amount > 0 && (
                   <p className="mt-3 text-xs text-muted-text text-right">
-                    两市成交额 <span className="text-white font-mono">{data.total_amount.toFixed(0)} 亿</span>
+                    两市成交额 <span className="text-foreground font-mono">{data.total_amount.toFixed(0)} 亿</span>
                   </p>
                 )}
               </Card>
@@ -153,7 +153,7 @@ const MarketPage: React.FC = () => {
                     <div className="space-y-2">
                       {data.top_sectors.map((s, i) => (
                         <div key={i} className="flex items-center justify-between text-xs">
-                          <span className="text-white">{s.name}</span>
+                          <span className="text-foreground">{s.name}</span>
                           <span className="font-mono text-[#ff4d4d]">+{s.change_pct?.toFixed(2)}%</span>
                         </div>
                       ))}
@@ -166,7 +166,7 @@ const MarketPage: React.FC = () => {
                     <div className="space-y-2">
                       {data.bottom_sectors.map((s, i) => (
                         <div key={i} className="flex items-center justify-between text-xs">
-                          <span className="text-white">{s.name}</span>
+                          <span className="text-foreground">{s.name}</span>
                           <span className="font-mono text-[#00d46a]">{s.change_pct?.toFixed(2)}%</span>
                         </div>
                       ))}

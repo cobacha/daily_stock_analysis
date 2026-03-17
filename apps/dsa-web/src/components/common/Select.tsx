@@ -43,9 +43,9 @@ export const Select: React.FC<SelectProps> = ({
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
           className={cn(
-            'h-11 w-full appearance-none rounded-xl border border-white/10 bg-card px-4 py-2.5 pr-10 text-sm text-foreground',
+            'h-11 w-full appearance-none rounded-xl border border-surface bg-card px-4 py-2.5 pr-10 text-sm text-foreground',
             'shadow-soft-card transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-cyan/15 focus:border-cyan/40',
-            'hover:border-white/18',
+            'hover:border-surface-strong',
             disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
           )}
         >

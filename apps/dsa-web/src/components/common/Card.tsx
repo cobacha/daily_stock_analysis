@@ -61,7 +61,7 @@ export const Card: React.FC<CardProps> = ({
       {(title || subtitle) && (
         <div className="mb-3">
           {subtitle ? <span className="label-uppercase">{subtitle}</span> : null}
-          {title ? <h3 className="mt-1 text-lg font-semibold text-white">{title}</h3> : null}
+          {title ? <h3 className="mt-1 text-lg font-semibold text-foreground">{title}</h3> : null}
         </div>
       )}
       {children}

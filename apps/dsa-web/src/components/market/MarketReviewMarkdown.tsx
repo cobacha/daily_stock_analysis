@@ -67,13 +67,13 @@ const mdComponents: Components = {
 
   // 表格外壳（支持横向滚动）
   table: ({ children }) => (
-    <div className="my-2 overflow-x-auto rounded-lg border border-white/8">
+    <div className="my-2 overflow-x-auto rounded-lg border border-surface">
       <table className="w-full border-collapse text-xs">{children}</table>
     </div>
   ),
 
   thead: ({ children }) => (
-    <thead className="border-b border-white/8 bg-white/5">{children}</thead>
+    <thead className="border-b border-surface bg-white/5">{children}</thead>
   ),
 
   tbody: ({ children }) => (
@@ -107,7 +107,7 @@ const mdComponents: Components = {
   },
 
   pre: ({ children }) => (
-    <pre className="my-2 overflow-x-auto rounded-lg border border-white/8 bg-white/5 p-3 font-mono text-xs text-secondary-text">
+    <pre className="my-2 overflow-x-auto rounded-lg border border-surface bg-white/5 p-3 font-mono text-xs text-secondary-text">
       {children}
     </pre>
   ),

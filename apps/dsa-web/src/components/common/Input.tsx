@@ -24,9 +24,9 @@ export const Input = ({ label, hint, error, className = '', id, ...props }: Inpu
         aria-describedby={describedBy}
         aria-invalid={ariaInvalid}
         className={cn(
-          'h-11 w-full rounded-xl border border-white/10 bg-card px-4 text-sm text-foreground shadow-soft-card transition-all',
+          'h-11 w-full rounded-xl border border-surface bg-card px-4 text-sm text-foreground shadow-soft-card transition-all',
           'placeholder:text-muted-text focus:outline-none focus:ring-4 focus:ring-cyan/15 focus:border-cyan/40',
-          error ? 'border-danger/30 focus:border-danger/40 focus:ring-danger/10' : 'hover:border-white/18',
+          error ? 'border-danger/30 focus:border-danger/40 focus:ring-danger/10' : 'hover:border-surface-strong',
           className,
         )}
         {...props}

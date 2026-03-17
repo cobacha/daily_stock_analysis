@@ -103,7 +103,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({
 
           {items.length > 0 && (
             <div className="flex items-center gap-2">
-              <div className="flex-1 flex items-center gap-2 px-2 py-1 rounded-lg bg-white/5 border border-white/5">
+              <div className="flex-1 flex items-center gap-2 px-2 py-1 rounded-lg bg-white/5 border border-surface-dim">
                 <input
                   ref={selectAllRef}
                   type="checkbox"
@@ -111,7 +111,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({
                   onChange={onToggleSelectAll}
                   disabled={isDeleting}
                   aria-label="全选当前已加载历史记录"
-                  className="w-3.5 h-3.5 rounded border-white/20 bg-transparent text-purple focus:ring-purple/40 cursor-pointer disabled:opacity-50"
+                  className="w-3.5 h-3.5 rounded border-surface-strong bg-transparent text-purple focus:ring-purple/40 cursor-pointer disabled:opacity-50"
                 />
                 <span className="text-[11px] text-muted-text select-none">全选当前</span>
               </div>
@@ -152,7 +152,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({
                     checked={selectedIds.has(item.id)}
                     onChange={() => onToggleItemSelection(item.id)}
                     disabled={isDeleting}
-                    className="w-3.5 h-3.5 rounded border-white/20 bg-transparent text-purple focus:ring-purple/40 cursor-pointer disabled:opacity-50"
+                    className="w-3.5 h-3.5 rounded border-surface-strong bg-transparent text-purple focus:ring-purple/40 cursor-pointer disabled:opacity-50"
                   />
                 </div>
                 <button
@@ -161,7 +161,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({
                   className={`flex-1 text-left p-2.5 rounded-xl transition-all duration-200 border relative overflow-hidden group/item ${
                     selectedId === item.id 
                       ? 'bg-purple/10 border-purple/30 border-cyan shadow-[0_0_15px_rgba(111,97,241,0.15)]' 
-                      : 'bg-white/5 border-transparent hover:bg-white/10 hover:border-white/10'
+                      : 'bg-white/5 border-transparent hover:bg-white/10 hover:border-surface'
                   }`}
                 >
                   <div className="absolute inset-0 opacity-0 group-hover/item:opacity-100 transition-opacity pointer-events-none">

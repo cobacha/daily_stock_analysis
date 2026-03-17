@@ -93,7 +93,7 @@ export const ReportNews: React.FC<ReportNewsProps> = ({ recordId, limit = 20 }) 
           {items.map((item, index) => (
             <div
               key={`${item.title}-${index}`}
-              className="group p-3 rounded-lg bg-elevated/80 border border-white/5 hover:border-cyan/30 hover:bg-hover transition-colors"
+              className="group p-3 rounded-lg bg-elevated/80 border border-surface-dim hover:border-cyan/30 hover:bg-hover transition-colors"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0 text-left">

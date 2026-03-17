@@ -64,9 +64,9 @@ export const Drawer: React.FC<DrawerProps> = ({
 
       <div className={cn('absolute inset-y-0 right-0 flex w-full', width)}>
         <div
-          className="relative flex w-full animate-slide-in-right flex-col border-l border-white/10 bg-card shadow-2xl"
+          className="relative flex w-full animate-slide-in-right flex-col border-l border-surface bg-card shadow-2xl"
         >
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-surface-dim">
             {title ? (
               <div>
                 <span className="label-uppercase">DETAIL VIEW</span>
@@ -76,7 +76,7 @@ export const Drawer: React.FC<DrawerProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-secondary-text transition-colors hover:bg-white/10 hover:text-foreground"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-surface bg-white/5 text-secondary-text transition-colors hover:bg-white/10 hover:text-foreground"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

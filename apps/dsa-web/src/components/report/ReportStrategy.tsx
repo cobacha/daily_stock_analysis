@@ -17,7 +17,7 @@ const StrategyItem: React.FC<StrategyItemProps> = ({
   value,
   color,
 }) => (
-  <div className="relative overflow-hidden rounded-lg bg-elevated border border-white/5 p-3 hover:border-white/10 transition-colors">
+  <div className="relative overflow-hidden rounded-lg bg-elevated border border-surface-dim p-3 hover:border-surface transition-colors">
     <div className="flex flex-col">
       <span className="text-xs text-muted-text mb-0.5">{label}</span>
       <span

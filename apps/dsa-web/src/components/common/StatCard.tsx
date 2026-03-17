@@ -17,7 +17,7 @@ interface StatCardProps {
 }
 
 const toneStyles = {
-  default: 'border-white/8',
+  default: 'border-surface',
   primary: 'border-cyan/18',
   success: 'border-success/18',
   warning: 'border-warning/18',

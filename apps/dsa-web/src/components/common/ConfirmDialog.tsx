@@ -33,7 +33,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       onClick={onCancel}
     >
       <div
-        className="bg-elevated border border-white/10 rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl animate-in fade-in zoom-in duration-200"
+        className="bg-elevated border border-surface rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl animate-in fade-in zoom-in duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-foreground font-medium mb-2 text-lg">{title}</h3>
@@ -44,7 +44,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-secondary-text hover:text-foreground hover:bg-white/5 border border-white/10 transition-colors"
+            className="px-4 py-2 rounded-lg text-sm font-medium text-secondary-text hover:text-foreground hover:bg-white/5 border border-surface transition-colors"
           >
             {cancelText}
           </button>

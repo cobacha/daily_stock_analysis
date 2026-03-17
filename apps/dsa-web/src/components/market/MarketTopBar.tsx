@@ -45,7 +45,7 @@ export const MarketTopBar: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="w-full bg-elevated border-b border-white/5 px-4 py-2 flex items-center gap-4 overflow-x-auto">
+      <div className="w-full bg-elevated border-b border-surface-dim px-4 py-2 flex items-center gap-4 overflow-x-auto">
         {[1, 2, 3].map((i) => (
           <div key={i} className="h-4 w-24 bg-white/5 rounded animate-pulse flex-shrink-0" />
         ))}
@@ -61,11 +61,11 @@ export const MarketTopBar: React.FC = () => {
     : '';
 
   return (
-    <div className="w-full bg-elevated border-b border-white/5 px-4 py-2 flex items-center gap-4 overflow-x-auto text-xs">
+    <div className="w-full bg-elevated border-b border-surface-dim px-4 py-2 flex items-center gap-4 overflow-x-auto text-xs">
       {mainIndices.map((idx) => (
         <div key={idx.code} className="flex items-center gap-1.5 flex-shrink-0">
           <span className="text-muted-text">{idx.name}</span>
-          <span className="font-mono text-white">{fmt(idx.current)}</span>
+          <span className="font-mono text-foreground">{fmt(idx.current)}</span>
           <span className={`font-mono ${colorOf(idx.change_pct)}`}>{fmtPct(idx.change_pct)}</span>
         </div>
       ))}
@@ -73,7 +73,7 @@ export const MarketTopBar: React.FC = () => {
       {data.total_amount > 0 && (
         <div className="flex items-center gap-1 flex-shrink-0 text-muted-text">
           <span>成交额</span>
-          <span className="text-white font-mono">{data.total_amount.toFixed(0)}亿</span>
+          <span className="text-foreground font-mono">{data.total_amount.toFixed(0)}亿</span>
         </div>
       )}
 
@@ -82,7 +82,7 @@ export const MarketTopBar: React.FC = () => {
       {summary && (
         <Link
           to="/market"
-          className="text-muted-text hover:text-white transition-colors truncate max-w-xs flex-shrink min-w-0"
+          className="text-muted-text hover:text-foreground transition-colors truncate max-w-xs flex-shrink min-w-0"
           title="查看完整大盘复盘"
         >
           {summary}…

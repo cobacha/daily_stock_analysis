@@ -44,7 +44,7 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-base px-4">
-      <div className="w-full max-w-sm rounded-2xl border border-white/8 bg-card/80 p-6 backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-2xl border border-surface bg-card/80 p-6 backdrop-blur-sm">
         <h1 className="mb-2 text-xl font-semibold text-foreground">
           {isFirstTime ? '设置初始密码' : '管理员登录'}
         </h1>
