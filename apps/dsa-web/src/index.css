@@ -896,6 +896,8 @@ textarea {
   --accent-foreground: 0 0% 100%;
   --destructive:     349 80% 50%;
   --destructive-foreground: 0 0% 100%;
+  --success: 150 60% 35%;
+  --warning:  38 90% 40%;
 
   --secondary-text:  215 25% 40%;
   --muted-text:      215 16% 60%;
@@ -912,6 +914,8 @@ textarea {
   /* Glow tokens become subtle shadows in light mode */
   --glow-cyan:    rgba(37, 99, 235, 0.20);
   --glow-purple:  rgba(111, 97, 241, 0.20);
+  --glow-success: rgba(22, 163, 74, 0.20);
+  --glow-danger:  rgba(220, 38, 38, 0.20);
 }
 
 /* Dock navigation */
@@ -982,9 +986,9 @@ textarea {
 
 /* Input */
 [data-theme="light"] .input-terminal {
-  background: #f8fafc;
-  border-color: rgba(0, 0, 0, 0.1);
-  color: #0f172a;
+  background: var(--bg-elevated);
+  border-color: var(--border-default);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .input-terminal::placeholder {
