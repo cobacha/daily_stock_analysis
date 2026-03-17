@@ -1,6 +1,7 @@
 import type React from 'react';
 import { useEffect } from 'react';
 import { useAuth, useSystemConfig } from '../hooks';
+import { useTheme } from '../contexts/ThemeContext';
 import { ApiErrorAlert } from '../components/common';
 import {
   ChangePasswordCard,
@@ -36,6 +37,7 @@ const SettingsPage: React.FC = () => {
     configVersion,
     maskToken,
   } = useSystemConfig();
+  const { theme, toggle } = useTheme();
 
   useEffect(() => {
     void load();
@@ -114,6 +116,28 @@ const SettingsPage: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            {/* Theme toggle */}
+            <button
+              type="button"
+              onClick={toggle}
+              className="flex items-center gap-2 rounded-xl border border-white/8 bg-white/4 px-3 py-1.5 text-xs text-muted-text transition-colors hover:border-cyan/30 hover:text-white"
+              title={theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'}
+            >
+              <span className={theme === 'light' ? 'text-cyan font-semibold' : 'text-muted-text'}>
+                ☀
+              </span>
+              <span className="relative inline-block h-5 w-9 rounded-full border border-white/10 bg-white/8 transition-colors">
+                <span
+                  className={`absolute top-0.5 h-4 w-4 rounded-full bg-cyan transition-all duration-200 ${
+                    theme === 'light' ? 'left-4' : 'left-0.5'
+                  }`}
+                />
+              </span>
+              <span className={theme === 'dark' ? 'text-cyan font-semibold' : 'text-muted-text'}>
+                ☾
+              </span>
+            </button>
+
             <button type="button" className="btn-secondary" onClick={() => void load()} disabled={isLoading || isSaving}>
               重置
             </button>

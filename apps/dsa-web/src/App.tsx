@@ -12,6 +12,7 @@ import PortfolioPage from './pages/PortfolioPage';
 import MarketPage from './pages/MarketPage';
 import { ApiErrorAlert } from './components/common';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { useAgentChatStore } from './stores/agentChatStore';
 import './App.css';
 
@@ -246,11 +247,13 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
     return (
-        <Router>
-            <AuthProvider>
-                <AppContent/>
-            </AuthProvider>
-        </Router>
+        <ThemeProvider>
+            <Router>
+                <AuthProvider>
+                    <AppContent/>
+                </AuthProvider>
+            </Router>
+        </ThemeProvider>
     );
 };
 
