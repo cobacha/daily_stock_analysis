@@ -353,7 +353,7 @@ def run_full_analysis(
             )
             # 如果有结果，赋值给 market_report 用于后续飞书文档生成
             if review_result:
-                market_report = review_result
+                market_report = review_result.get("review_text", "") if isinstance(review_result, dict) else review_result
 
         # Issue #190: 合并推送（个股+大盘复盘）
         if merge_notification and (results or market_report) and not args.no_notify:
@@ -438,10 +438,16 @@ def run_full_analysis(
                     min_age_days=getattr(config, 'backtest_min_age_days', 14),
                     limit=200,
                 )
-                logger.info(
-                    f"自动回测完成: processed={stats.get('processed')} saved={stats.get('saved')} "
-                    f"completed={stats.get('completed')} insufficient={stats.get('insufficient')} errors={stats.get('errors')}"
-                )
+                processed = stats.get('processed', 0)
+                if processed == 0:
+                    logger.debug(
+                        f"自动回测：无符合条件的记录（需满足 min_age_days={getattr(config, 'backtest_min_age_days', 14)} 且未回测）"
+                    )
+                else:
+                    logger.info(
+                        f"自动回测完成: processed={processed} saved={stats.get('saved')} "
+                        f"completed={stats.get('completed')} insufficient={stats.get('insufficient')} errors={stats.get('errors')}"
+                    )
         except Exception as e:
             logger.warning(f"自动回测失败（已忽略）: {e}")
 
