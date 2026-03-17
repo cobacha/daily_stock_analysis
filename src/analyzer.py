@@ -1159,7 +1159,15 @@ class GeminiAnalyzer:
 **风险因素**：
 {chr(10).join('- ' + r for r in trend.get('risk_factors', ['无'])) if trend.get('risk_factors') else '- 无'}
 """
-        
+
+        # 注入技术形态标签
+        technical_labels = context.get('technical_labels', [])
+        if technical_labels:
+            prompt += f"""
+### 技术形态标签
+{', '.join(technical_labels)}
+"""
+
         # 添加昨日对比数据
         if 'yesterday' in context:
             volume_change = context.get('volume_change_ratio', 'N/A')

@@ -31,6 +31,7 @@ from src.notification import NotificationService, NotificationChannel
 from src.search_service import SearchService
 from src.enums import ReportType
 from src.stock_analyzer import StockTrendAnalyzer, TrendAnalysisResult
+from src.collectors.technical_pattern_labeler import TechnicalPatternLabeler
 from src.core.trading_calendar import get_market_for_stock, is_market_open
 from bot.models import BotMessage
 
@@ -82,6 +83,7 @@ class StockAnalysisPipeline:
         self.analysis_repo = AnalysisRepository(self.db)
         # 不再单独创建 akshare_fetcher，统一使用 fetcher_manager 获取增强数据
         self.trend_analyzer = StockTrendAnalyzer()  # 趋势分析器
+        self.pattern_labeler = TechnicalPatternLabeler()
         self.analyzer = GeminiAnalyzer()
         self.notifier = NotificationService(source_message=source_message)
         
@@ -479,6 +481,9 @@ class StockAnalysisPipeline:
                 'signal_reasons': trend_result.signal_reasons,
                 'risk_factors': trend_result.risk_factors,
             }
+
+            # Phase 1: 注入技术形态标签
+            enhanced['technical_labels'] = self.pattern_labeler.label(trend_result)
 
         # Issue #234: Override today with realtime OHLC + trend MA for intraday analysis
         # Guard: trend_result.ma5 > 0 ensures MA calculation succeeded (data sufficient)
