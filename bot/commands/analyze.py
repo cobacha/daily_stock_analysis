@@ -21,12 +21,13 @@ logger = logging.getLogger(__name__)
 class AnalyzeCommand(BotCommand):
     """
     股票分析命令
-    
-    分析指定股票代码，生成 AI 分析报告并推送。
-    
+
+    分析指定股票代码或名称，生成 AI 分析报告并推送。
+
     用法：
-        /analyze 600519       - 分析贵州茅台（精简报告）
-        /analyze 600519 full  - 分析并生成完整报告
+        /analyze 600519       - 分析贵州茅台（完整报告）
+        /analyze 茅台         - 分析茅台（完整报告）
+        /analyze 600519 simple  - 分析并生成精简报告
     """
     
     @property
@@ -43,7 +44,7 @@ class AnalyzeCommand(BotCommand):
     
     @property
     def usage(self) -> str:
-        return "/analyze <股票代码> [full]"
+        return "/analyze <股票代码/名称> [simple]"
     
     def validate_args(self, args: List[str]) -> Optional[str]:
         """验证参数"""
@@ -69,10 +70,10 @@ class AnalyzeCommand(BotCommand):
         """执行分析命令"""
         code = canonical_stock_code(args[0])
         
-        # 检查是否需要完整报告（默认精简，传 full/完整/详细 切换）
-        report_type = "simple"
-        if len(args) > 1 and args[1].lower() in ["full", "完整", "详细"]:
-            report_type = "full"
+        # 检查是否需要精简报告（默认完整，传 simple/精简 切换）
+        report_type = "full"
+        if len(args) > 1 and args[1].lower() in ["simple", "精简", "简短"]:
+            report_type = "simple"
         logger.info(f"[AnalyzeCommand] 分析股票: {code}, 报告类型: {report_type}")
         
         try:

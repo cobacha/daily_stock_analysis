@@ -73,7 +73,7 @@ export const ReportMarkdown: React.FC<ReportMarkdownProps> = ({
           </svg>
         </div>
         <div>
-          <h2 className="text-base font-semibold text-white">{stockName || stockCode}</h2>
+          <h2 className="text-base font-semibold text-foreground">{stockName || stockCode}</h2>
           <p className="text-xs text-muted-text">完整分析报告</p>
         </div>
       </div>
@@ -103,19 +103,19 @@ export const ReportMarkdown: React.FC<ReportMarkdownProps> = ({
       ) : (
         <div
           className="prose prose-invert prose-sm max-w-none
-            prose-headings:text-white prose-headings:font-semibold prose-headings:mt-4 prose-headings:mb-2
-            prose-h1:text-xl prose-h1:border-b prose-h1:border-white/10 prose-h1:pb-2
+            prose-headings:text-foreground prose-headings:font-semibold prose-headings:mt-4 prose-headings:mb-2
+            prose-h1:text-xl prose-h1:border-b prose-h1:border-surface prose-h1:pb-2
             prose-h2:text-lg prose-h2:text-purple
             prose-h3:text-base
             prose-p:leading-relaxed prose-p:mb-3 prose-p:last:mb-0
-            prose-strong:text-white prose-strong:font-semibold
+            prose-strong:text-foreground prose-strong:font-semibold
             prose-ul:my-2 prose-ol:my-2 prose-li:my-1
             prose-code:text-cyan prose-code:bg-cyan/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none
-            prose-pre:bg-elevated prose-pre:border prose-pre:border-white/10
+            prose-pre:bg-elevated prose-pre:border prose-pre:border-surface
             prose-table:border-collapse
-            prose-th:border prose-th:border-white/20 prose-th:px-3 prose-th:py-2 prose-th:text-white prose-th:bg-elevated
-            prose-td:border prose-td:border-white/20 prose-td:px-3 prose-td:py-2
-            prose-hr:border-white/10 prose-hr:my-4
+            prose-th:border prose-th:border-surface-strong prose-th:px-3 prose-th:py-2 prose-th:text-foreground prose-th:bg-elevated
+            prose-td:border prose-td:border-surface-strong prose-td:px-3 prose-td:py-2
+            prose-hr:border-surface prose-hr:my-4
             prose-a:text-cyan prose-a:no-underline hover:prose-a:underline
             prose-blockquote:border-purple/30 prose-blockquote:bg-purple/5 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg
             prose-blockquote:text-secondary-text
@@ -129,11 +129,11 @@ export const ReportMarkdown: React.FC<ReportMarkdownProps> = ({
       )}
 
       {/* Footer */}
-      <div className="flex justify-end mt-6 pt-4 border-t border-white/10">
+      <div className="flex justify-end mt-6 pt-4 border-t border-surface">
         <button
           type="button"
           onClick={handleClose}
-          className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm text-secondary-text hover:text-white transition-colors"
+          className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm text-secondary-text hover:text-foreground transition-colors"
         >
           关闭
         </button>

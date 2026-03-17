@@ -295,7 +295,8 @@ class MarketAnalyzer:
         
         logger.info("[大盘] 调用大模型生成复盘报告...")
         # Use the public generate_text() entry point — never access private analyzer attributes.
-        review = self.analyzer.generate_text(prompt, max_tokens=2048, temperature=0.7)
+        # system_prompt="" 避免将股票分析 JSON 模板混入大盘复盘请求
+        review = self.analyzer.generate_text(prompt, max_tokens=8192, temperature=1.0, system_prompt="")
 
         if review:
             logger.info("[大盘] 复盘报告生成成功，长度: %d 字符", len(review))

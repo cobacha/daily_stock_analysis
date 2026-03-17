@@ -4,79 +4,72 @@
    1. THEME VARIABLES (Base/Classic)
    ========================================= */
 :root {
-  /* Primary brand tones */
-  --color-cyan: #00d4ff;
-  --color-cyan-dim: #00a8cc;
-  --color-cyan-glow: rgba(0, 212, 255, 0.4);
+  /* ─ HSL tokens — single source of truth ──────────────────────
+     These are the ONLY vars that change between dark/light.     */
+  --background:  228 35%  7%;
+  --foreground:  210 33% 98%;
+  --card:        230 24% 10%;
+  --card-foreground: 210 33% 98%;
+  --elevated:    230 22% 12%;
+  --hover:       231 20% 16%;
+  --primary:         190 100% 50%;
+  --primary-foreground: 228 35%  8%;
+  --secondary:       231 19% 15%;
+  --secondary-foreground: 210 33% 94%;
+  --muted:           230 18% 14%;
+  --muted-foreground: 228 13% 66%;
+  --accent:          249 84% 63%;
+  --accent-foreground: 210 33% 98%;
+  --destructive:     349 100% 63%;
+  --destructive-foreground: 210 33% 98%;
+  --success:   150 100% 53%;
+  --warning:    38 100% 50%;
+  --border:   226 19% 20%;
+  --input:    226 19% 20%;
+  --ring:     190 100% 50%;
+  --radius:   1rem;
+  --secondary-text: 228 16% 72%;
+  --muted-text:     228 10% 48%;
 
-  /* Secondary accent tones */
-  --color-purple: #6f61f1;
-  --color-purple-dim: #5a4ed4;
-  --color-purple-glow: rgba(168, 85, 247, 0.3);
+  /* ─ Alpha border tokens (flip dark→light via theme override) ── */
+  --border-dim:     rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong:  rgba(255, 255, 255, 0.20);
 
-  /* Status colors */
-  --color-success: #00ff88;
-  --color-warning: #ffaa00;
-  --color-danger: #ff4466;
+  /* ─ Glow tokens ─────────────────────────────────────────────── */
+  --glow-cyan:    rgba(0, 212, 255, 0.40);
+  --glow-purple:  rgba(111, 97, 241, 0.30);
+  --glow-success: rgba(0, 255, 136, 0.30);
+  --glow-danger:  rgba(255, 68, 102, 0.30);
 
-  /* Dark surface colors */
-  --bg-base: #08080c;
-  --bg-card: #0d0d14;
-  --bg-elevated: #12121a;
-  --bg-hover: #1a1a24;
+  /* ─ Computed aliases — bridge old system to new ──────────────
+     Old CSS utility classes (.text-muted-text, .bg-card, etc.)
+     reference these. They now auto-update when HSL tokens change. */
+  --color-cyan:    hsl(var(--primary));
+  --color-purple:  hsl(var(--accent));
+  --color-success: hsl(var(--success));
+  --color-warning: hsl(var(--warning));
+  --color-danger:  hsl(var(--destructive));
+  --color-cyan-glow: var(--glow-cyan);
+  --color-purple-glow: var(--glow-purple);
+  --bg-base:       hsl(var(--background));
+  --bg-card:       hsl(var(--card));
+  --bg-elevated:   hsl(var(--elevated));
+  --bg-hover:      hsl(var(--hover));
+  --text-primary:  hsl(var(--foreground));
+  --text-secondary-text: hsl(var(--secondary-text));
+  --text-muted-text:     hsl(var(--muted-text));
+  --border-accent: hsl(var(--primary) / 0.3);
+  --border-purple: hsl(var(--accent) / 0.28);
+  --border-cyan:   hsl(var(--primary));
 
-  /* Border colors */
-  --border-dim: rgba(255, 255, 255, 0.06);
-  --border-default: rgba(255, 255, 255, 0.1);
-  --border-accent: rgba(0, 212, 255, 0.3);
-  --border-purple: rgba(168, 85, 247, 0.28);
-  --border-cyan: #00d4ff;
-  /* Text colors */
-  --text-primary: #ffffff;
-  --text-secondary-text: #a0a0b0;
-  --text-muted-text: #606070;
-
-  /* Typography */
-  font-family:
-    "Inter",
-    "SF Pro Display",
-    "Segoe UI",
-    system-ui,
-    -apple-system,
-    sans-serif;
+  /* ─ Typography ──────────────────────────────────────────────── */
+  font-family: "Inter", "SF Pro Display", "Segoe UI", system-ui, -apple-system, sans-serif;
   line-height: 1.5;
-  font-weight: 400;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  /* HSL tokens used by Tailwind-based components */
-
-  --background: 228 35% 7%;
-  --foreground: 210 33% 98%;
-  --card: 230 24% 10%;
-  --card-foreground: 210 33% 98%;
-  --popover: 230 24% 10%;
-  --popover-foreground: 210 33% 98%;
-  --primary: 190 100% 50%;
-  --primary-foreground: 228 35% 8%;
-  --secondary: 231 19% 15%;
-  --secondary-foreground: 210 33% 94%;
-  --muted: 230 18% 14%;
-  --muted-foreground: 228 13% 66%;
-  --accent: 231 18% 16%;
-  --accent-foreground: 210 33% 98%;
-  --destructive: 349 100% 63%;
-  --destructive-foreground: 210 33% 98%;
-  --border: 226 19% 20%;
-  --input: 226 19% 20%;
-  --ring: 190 100% 50%;
-  --radius: 1rem;
-  --elevated: 230 22% 12%;
-  --hover: 231 20% 16%;
-  --secondary-text: 228 16% 72%;
-  --muted-text: 228 10% 48%;
 }
 
 /* =========================================
@@ -227,7 +220,7 @@ body {
 }
 
 .gauge-track {
-  stroke: rgba(255, 255, 255, 0.05);
+  stroke: var(--gauge-track, rgba(255, 255, 255, 0.05));
   fill: none;
 }
 
@@ -503,6 +496,16 @@ body {
 .border-cyan {
   border-color: var(--border-cyan);
 }
+
+/* Semantic alpha-border utilities — theme-adaptive */
+.border-surface        { border-color: var(--border-default); }
+.border-surface-dim    { border-color: var(--border-dim); }
+.border-surface-strong { border-color: var(--border-strong); }
+
+/* Hover variants */
+.hover\:border-surface:hover        { border-color: var(--border-default); }
+.hover\:border-surface-dim:hover    { border-color: var(--border-dim); }
+.hover\:border-surface-strong:hover { border-color: var(--border-strong); }
 
 /* Glow utilities */
 .glow-cyan {
@@ -865,3 +868,270 @@ textarea {
     border-radius: 12px;
   }
 }
+
+/* =========================================
+   LIGHT THEME OVERRIDES
+   ========================================= */
+
+/* ─────────────────────────────────────────────────────────────
+   LIGHT THEME — HSL overrides only.
+   Old vars (--bg-card, --text-primary, etc.) auto-recompute
+   from the HSL source above — no need to repeat them here.
+   ───────────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --background:  214 32% 96%;
+  --foreground:  222 47% 11%;
+  --card:          0  0% 100%;
+  --card-foreground: 222 47% 11%;
+  --elevated:    210 40% 98%;
+  --hover:       214 32% 93%;
+
+  --primary:         221 83% 53%;
+  --primary-foreground: 0 0% 100%;
+  --secondary:       210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted:           210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --accent:          249 65% 55%;
+  --accent-foreground: 0 0% 100%;
+  --destructive:     349 80% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 150 60% 35%;
+  --warning:  38 90% 40%;
+
+  --secondary-text:  215 25% 40%;
+  --muted-text:      215 16% 60%;
+
+  --border:   214 32% 91%;
+  --input:    214 32% 91%;
+  --ring:     221 83% 53%;
+
+  /* Alpha borders flip from white-on-dark to black-on-light */
+  --border-dim:     rgba(0, 0, 0, 0.05);
+  --border-default: rgba(0, 0, 0, 0.08);
+  --border-strong:  rgba(0, 0, 0, 0.15);
+
+  /* Glow tokens become subtle shadows in light mode */
+  --glow-cyan:    rgba(37, 99, 235, 0.20);
+  --glow-purple:  rgba(111, 97, 241, 0.20);
+  --glow-success: rgba(22, 163, 74, 0.20);
+  --glow-danger:  rgba(220, 38, 38, 0.20);
+}
+
+/* Dock navigation */
+[data-theme="light"] .dock-surface {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="light"] .dock-surface::before {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.06) 0%,
+    rgba(0, 0, 0, 0.02) 100%
+  );
+}
+
+[data-theme="light"] .dock-logo {
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.9) 0%, #2563eb 100%);
+  box-shadow: 0 8px 16px rgba(37, 99, 235, 0.25);
+}
+
+[data-theme="light"] .dock-item {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.07);
+  color: #64748b;
+}
+
+[data-theme="light"] .dock-item:hover {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.2);
+  color: #1e40af;
+}
+
+[data-theme="light"] .dock-item.is-active {
+  background: linear-gradient(
+    135deg,
+    rgba(37, 99, 235, 0.15),
+    rgba(111, 97, 241, 0.1)
+  );
+  border-color: rgba(37, 99, 235, 0.25);
+  color: #1e3a8a;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.1),
+    0 14px 32px rgba(37, 99, 235, 0.12);
+}
+
+/* Buttons */
+[data-theme="light"] .btn-primary {
+  color: #ffffff;
+  border-color: rgba(37, 99, 235, 0.4);
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.2);
+}
+
+[data-theme="light"] .btn-secondary {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.09);
+  color: #475569;
+}
+
+[data-theme="light"] .btn-secondary:hover {
+  background: rgba(37, 99, 235, 0.06);
+  border-color: rgba(37, 99, 235, 0.3);
+  color: #1e40af;
+}
+
+/* Input */
+[data-theme="light"] .input-terminal {
+  background: var(--bg-elevated);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .input-terminal::placeholder {
+  color: #94a3b8;
+}
+
+/* Title gradient (dark→light text) */
+[data-theme="light"] .title-gradient {
+  background: linear-gradient(90deg, #0f172a 0%, #475569 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Scrollbar */
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BG-WHITE OVERRIDES — flip to black-on-light
+   ───────────────────────────────────────────────────────────── */
+[data-theme="light"] .bg-white\/4 { background-color: rgba(0, 0, 0, 0.02); }
+[data-theme="light"] .bg-white\/5 { background-color: rgba(0, 0, 0, 0.03); }
+[data-theme="light"] .bg-white\/8 { background-color: rgba(0, 0, 0, 0.04); }
+[data-theme="light"] .bg-white\/10 { background-color: rgba(0, 0, 0, 0.05); }
+[data-theme="light"] .bg-white\/15 { background-color: rgba(0, 0, 0, 0.08); }
+[data-theme="light"] .bg-white\/20 { background-color: rgba(0, 0, 0, 0.10); }
+[data-theme="light"] .hover\:bg-white\/5:hover { background-color: rgba(0, 0, 0, 0.04); }
+[data-theme="light"] .hover\:bg-white\/10:hover { background-color: rgba(0, 0, 0, 0.06); }
+[data-theme="light"] .hover\:bg-white\/20:hover { background-color: rgba(0, 0, 0, 0.12); }
+[data-theme="light"] .group:hover .group-hover\:bg-white\/5 { background-color: rgba(0, 0, 0, 0.04); }
+[data-theme="light"] .group-hover\:bg-white\/5 { background-color: rgba(0, 0, 0, 0.03); }
+[data-theme="light"] .group-hover\:bg-white\/10 { background-color: rgba(0, 0, 0, 0.06); }
+
+/* ─────────────────────────────────────────────────────────────
+   TEXT GRAY OVERRIDES — ensure visibility on light backgrounds
+   ───────────────────────────────────────────────────────────── */
+[data-theme="light"] .text-gray-100 { color: rgba(0, 0, 0, 0.75); }
+[data-theme="light"] .text-gray-200 { color: rgba(0, 0, 0, 0.65); }
+[data-theme="light"] .text-gray-300 { color: rgba(0, 0, 0, 0.55); }
+[data-theme="light"] .text-gray-400 { color: rgba(0, 0, 0, 0.45); }
+[data-theme="light"] .text-gray-500 { color: rgba(0, 0, 0, 0.55); }
+
+/* ─────────────────────────────────────────────────────────────
+   JSON VIEWER DARK BG — keep dark in light mode
+   ───────────────────────────────────────────────────────────── */
+[data-theme="light"] .bg-slate-700 { background-color: #334155; }
+[data-theme="light"] .bg-slate-900\/80 { background-color: rgba(15, 23, 42, 0.85); }
+[data-theme="light"] .hover\:bg-slate-600:hover { background-color: #475569; }
+[data-theme="light"] .border-slate-700\/50 { border-color: rgba(51, 65, 85, 0.5); }
+
+/* ─────────────────────────────────────────────────────────────
+   CONFIRM DIALOG — ensure button visibility in light mode
+   ───────────────────────────────────────────────────────────── */
+[data-theme="light"] .bg-red-500\/80 { background-color: #dc2626; color: #fff; }
+[data-theme="light"] .hover\:bg-red-500:hover { background-color: #b91c1c; }
+[data-theme="light"] .bg-cyan\/80 { background-color: #0ea5e9; color: #fff; }
+[data-theme="light"] .hover\:bg-cyan:hover { background-color: #0284c7; }
+
+/* ─────────────────────────────────────────────────────────────
+   BUTTON DANGER — ensure visibility in light mode
+   ───────────────────────────────────────────────────────────── */
+[data-theme="light"] .bg-danger {
+  background-color: #dc2626;
+}
+[data-theme="light"] .text-white {
+  color: #fff;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SCORE GAUGE — ensure text visibility in light mode
+   ───────────────────────────────────────────────────────────── */
+[data-theme="light"] .gauge-text {
+  color: #1e293b;
+  text-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SCORE GAUGE — background ring visibility in light mode
+   ───────────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --gauge-track: rgba(0, 0, 0, 0.08);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   CHAT PAGE — light mode message styling
+   ───────────────────────────────────────────────────────────── */
+[data-theme="light"] .bg-white\/10 { background-color: rgba(0, 0, 0, 0.06); }
+[data-theme="light"] .bg-white\/5 { background-color: rgba(0, 0, 0, 0.03); }
+
+/* ─────────────────────────────────────────────────────────────
+   GLASS CARD — light mode override
+   ───────────────────────────────────────────────────────────── */
+[data-theme="light"] .glass-card {
+  border-color: rgba(0, 0, 0, 0.08);
+  background: hsl(var(--card) / 0.85);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .glass-card::before {
+  background: linear-gradient(
+    135deg,
+    rgba(37, 99, 235, 0.15) 0%,
+    rgba(111, 97, 241, 0.08) 50%,
+    rgba(0, 0, 0, 0.02) 100%
+  ),
+  linear-gradient(#fff 0 0) content-box,
+  linear-gradient(#fff 0 0);
+}
+
+[data-theme="light"] .glass-card::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(37, 99, 235, 0.08) 50%,
+    transparent 100%
+  );
+}
+
+/* Chat message bubbles - user */
+[data-theme="light"] .bg-cyan\/10 {
+  background-color: rgba(37, 99, 235, 0.1);
+  border-color: rgba(37, 99, 235, 0.2);
+}
+
+/* Chat message bubbles - AI */
+[data-theme="light"] .bg-white\/5.text-secondary-text {
+  background-color: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Chat prose content in light mode */
+[data-theme="light"] .prose-invert {
+  --tw-prose-body: var(--text-primary);
+  --tw-prose-headings: var(--foreground);
+  --tw-prose-links: #2563eb;
+  --tw-prose-bold: var(--foreground);
+  --tw-prose-code: #2563eb;
+  --tw-prose-pre-bg: rgba(0, 0, 0, 0.05);
+}
+

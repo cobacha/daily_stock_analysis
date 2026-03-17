@@ -21,7 +21,7 @@ interface ChartPoint {
   label: string;
 }
 
-type PeriodKey = 'today' | '5d' | '10d' | 'month' | 'quarter';
+type PeriodKey = 'today' | '5d' | '10d' | 'month' | 'quarter' | '1y';
 
 interface PeriodConfig {
   key: PeriodKey;
@@ -94,6 +94,22 @@ const PERIODS: PeriodConfig[] = [
       return idx % step === 0 || idx === total - 1 ? mmdd2(date) : '';
     },
   },
+  {
+    key: '1y',
+    label: '年度',
+    statLabels: ['年初开盘', '最新收盘', '年内最高', '年内最低'],
+    filter: (data, now) => {
+      const yearStart = `${now.getFullYear()}-01`;
+      return data.filter((d) => d.date >= yearStart);
+    },
+    xLabel: (date, idx, total) => {
+      // 每隔约30条（约1个月）显示一个月份标签
+      const step = Math.max(1, Math.floor(total / 12));
+      return idx % step === 0 || idx === total - 1
+        ? `${date.slice(5, 7)}月`
+        : '';
+    },
+  },
 ];
 
 const CustomTooltip = ({
@@ -107,9 +123,9 @@ const CustomTooltip = ({
 }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-xs shadow-xl">
+    <div className="bg-elevated border border-surface [[data-theme=light]_&]:border-black/8 rounded-lg px-3 py-2 text-xs shadow-xl">
       <p className="text-muted-text mb-0.5">{label}</p>
-      <p className="text-white font-mono font-semibold">{payload[0].value.toFixed(2)}</p>
+      <p className="text-primary font-mono font-semibold">{payload[0].value.toFixed(2)}</p>
     </div>
   );
 };
@@ -127,8 +143,9 @@ export const ReportPriceHistory: React.FC<ReportPriceHistoryProps> = ({ stockCod
     setIsLoading(true);
     setError(null);
 
+    const days = activePeriod === '1y' ? 365 : 180;
     stocksApi
-      .getHistory(stockCode, 180) // 拉取180天数据覆盖所有周期
+      .getHistory(stockCode, days)
       .then((res) => {
         if (cancelled) return;
         setAllKlines(res.data);
@@ -143,7 +160,7 @@ export const ReportPriceHistory: React.FC<ReportPriceHistoryProps> = ({ stockCod
       });
 
     return () => { cancelled = true; };
-  }, [stockCode]);
+  }, [stockCode, activePeriod]);
 
   const period = PERIODS.find((p) => p.key === activePeriod)!;
 
@@ -198,7 +215,7 @@ export const ReportPriceHistory: React.FC<ReportPriceHistoryProps> = ({ stockCod
       <div className="mb-3 flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-baseline gap-2">
           <span className="label-uppercase">PRICE</span>
-          <h3 className="text-base font-semibold text-white">价格走势</h3>
+          <h3 className="text-base font-semibold text-foreground">价格走势</h3>
         </div>
 
         {/* 周期选择器 */}
@@ -211,7 +228,7 @@ export const ReportPriceHistory: React.FC<ReportPriceHistoryProps> = ({ stockCod
               className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
                 activePeriod === p.key
                   ? 'bg-cyan/15 text-cyan'
-                  : 'text-muted-text hover:text-white'
+                  : 'text-muted-text hover:text-foreground'
               }`}
             >
               {p.label}
@@ -296,7 +313,7 @@ export const ReportPriceHistory: React.FC<ReportPriceHistoryProps> = ({ stockCod
           {/* 关键数据 */}
           <div className="grid grid-cols-4 gap-2">
             {[
-              { label: period.statLabels[0], value: fmt(statStart), color: 'text-white' },
+              { label: period.statLabels[0], value: fmt(statStart), color: 'text-foreground' },
               { label: period.statLabels[1], value: fmt(statEnd), color: isPositive ? 'text-[#ff4d4d]' : 'text-[#00d46a]' },
               { label: period.statLabels[2], value: fmt(statHigh), color: 'text-[#ff4d4d]' },
               { label: period.statLabels[3], value: fmt(statLow), color: 'text-[#00d46a]' },

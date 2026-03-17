@@ -194,7 +194,7 @@ const ChannelRow: React.FC<ChannelRowProps> = ({
   const hasKey = channel.apiKey.length > 0;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-white/8 bg-card/40">
+    <div className="overflow-hidden rounded-lg border border-surface bg-card/40">
       <div
         className="flex cursor-pointer select-none items-center gap-2 px-3 py-2 transition-colors hover:bg-white/[0.03]"
         onClick={() => onToggleExpand(index)}
@@ -213,12 +213,12 @@ const ChannelRow: React.FC<ChannelRowProps> = ({
           type="checkbox"
           checked={channel.enabled}
           disabled={busy}
-          className="h-4 w-4 shrink-0 rounded border-white/10 bg-card text-cyan focus:ring-cyan/20"
+          className="h-4 w-4 shrink-0 rounded border-surface bg-card text-cyan focus:ring-cyan/20"
           onClick={(e) => e.stopPropagation()}
           onChange={(e) => onUpdate(index, 'enabled', e.target.checked)}
         />
 
-        <span className="min-w-[100px] truncate text-sm font-medium text-white">{displayName}</span>
+        <span className="min-w-[100px] truncate text-sm font-medium text-foreground">{displayName}</span>
 
         <span className="hidden rounded bg-white/8 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-text sm:inline">
           {channel.protocol}
@@ -252,7 +252,7 @@ const ChannelRow: React.FC<ChannelRowProps> = ({
       </div>
 
       {expanded ? (
-        <div className="space-y-2.5 border-t border-white/6 bg-card/20 px-3 py-3">
+        <div className="space-y-2.5 border-t border-surface-dim bg-card/20 px-3 py-3">
           <div className="grid gap-2 sm:grid-cols-2">
             <div>
               <label className="mb-0.5 block text-[11px] text-muted-text">渠道名称</label>
@@ -869,7 +869,7 @@ export const LLMChannelEditor: React.FC<LLMChannelEditorProps> = ({
         onClick={() => setIsCollapsed((previous) => !previous)}
       >
         <div>
-          <h3 className="text-sm font-semibold text-white">AI 模型配置</h3>
+          <h3 className="text-sm font-semibold text-foreground">AI 模型配置</h3>
           <p className="mt-0.5 text-xs text-muted-text">
             添加服务商渠道，填入 API Key 和模型名称即可。配置会自动同步到 .env 文件。
           </p>
@@ -905,7 +905,7 @@ export const LLMChannelEditor: React.FC<LLMChannelEditorProps> = ({
             </div>
 
             {channels.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-white/10 bg-card/20 px-4 py-6 text-center text-xs text-muted-text">
+              <div className="rounded-lg border border-dashed border-surface bg-card/20 px-4 py-6 text-center text-xs text-muted-text">
                 还没有渠道，选择服务商后点击「添加渠道」
               </div>
             ) : channels.map((channel, index) => (
@@ -927,7 +927,7 @@ export const LLMChannelEditor: React.FC<LLMChannelEditorProps> = ({
           </div>
 
           {managesRuntimeConfig ? (
-            <div className="rounded-lg border border-white/8 bg-card/30 p-3">
+            <div className="rounded-lg border border-surface bg-card/30 p-3">
               <div className="mb-3 flex items-center justify-between">
                 <div>
                   <span className="text-xs font-medium uppercase tracking-wider text-muted-text">运行时参数</span>
@@ -956,7 +956,7 @@ export const LLMChannelEditor: React.FC<LLMChannelEditorProps> = ({
               </div>
 
               {availableModels.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-white/10 bg-card/20 px-3 py-2 text-xs text-muted-text">
+                <div className="rounded-lg border border-dashed border-surface bg-card/20 px-3 py-2 text-xs text-muted-text">
                   先添加至少一个已启用渠道并填写模型，下面的主模型 / fallback / Vision 选项才会出现。
                 </div>
               ) : (
@@ -974,7 +974,7 @@ export const LLMChannelEditor: React.FC<LLMChannelEditorProps> = ({
 
                   <div>
                     <label className="mb-2 block text-xs text-muted-text">Fallback 模型</label>
-                    <div className="space-y-2 rounded-lg border border-white/8 bg-card/20 p-3">
+                    <div className="space-y-2 rounded-lg border border-surface bg-card/20 p-3">
                       {availableModels.map((model) => (
                         <label key={model} className="flex items-center gap-2 text-sm text-secondary-text">
                           <input

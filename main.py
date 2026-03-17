@@ -343,17 +343,37 @@ def run_full_analysis(
             and not args.no_market_review
             and effective_region != ''
         ):
-            review_result = run_market_review(
-                notifier=pipeline.notifier,
-                analyzer=pipeline.analyzer,
-                search_service=pipeline.search_service,
-                send_notification=not args.no_notify,
-                merge_notification=merge_notification,
-                override_region=effective_region,
-            )
-            # 如果有结果，赋值给 market_report 用于后续飞书文档生成
-            if review_result:
-                market_report = review_result
+            # 先检查当日缓存，已有则直接复用，避免重复调用 LLM
+            _skip_generate = False
+            _cached_region = effective_region if effective_region in ('cn', 'us') else 'cn'
+            try:
+                from src.services.market_service import MarketService
+                import json as _json
+                _cached = MarketService().get_cached_review(region=_cached_region)
+                if _cached:
+                    _ctx = {}
+                    if hasattr(_cached, 'context_snapshot') and _cached.context_snapshot:
+                        try:
+                            _ctx = _json.loads(_cached.context_snapshot) if isinstance(_cached.context_snapshot, str) else _cached.context_snapshot
+                        except Exception:
+                            pass
+                    market_report = _cached.analysis_summary or _ctx.get('review_text', '')
+                    logger.info("[大盘复盘] 命中今日缓存，跳过重新生成")
+                    _skip_generate = True
+            except Exception as _e:
+                logger.warning(f"[大盘复盘] 缓存检查失败，继续正常生成: {_e}")
+
+            if not _skip_generate:
+                review_result = run_market_review(
+                    notifier=pipeline.notifier,
+                    analyzer=pipeline.analyzer,
+                    search_service=pipeline.search_service,
+                    send_notification=not args.no_notify,
+                    merge_notification=merge_notification,
+                    override_region=effective_region,
+                )
+                if review_result:
+                    market_report = review_result.get("review_text", "") if isinstance(review_result, dict) else review_result
 
         # Issue #190: 合并推送（个股+大盘复盘）
         if merge_notification and (results or market_report) and not args.no_notify:
@@ -438,10 +458,16 @@ def run_full_analysis(
                     min_age_days=getattr(config, 'backtest_min_age_days', 14),
                     limit=200,
                 )
-                logger.info(
-                    f"自动回测完成: processed={stats.get('processed')} saved={stats.get('saved')} "
-                    f"completed={stats.get('completed')} insufficient={stats.get('insufficient')} errors={stats.get('errors')}"
-                )
+                processed = stats.get('processed', 0)
+                if processed == 0:
+                    logger.debug(
+                        f"自动回测：无符合条件的记录（需满足 min_age_days={getattr(config, 'backtest_min_age_days', 14)} 且未回测）"
+                    )
+                else:
+                    logger.info(
+                        f"自动回测完成: processed={processed} saved={stats.get('saved')} "
+                        f"completed={stats.get('completed')} insufficient={stats.get('insufficient')} errors={stats.get('errors')}"
+                    )
         except Exception as e:
             logger.warning(f"自动回测失败（已忽略）: {e}")
 

@@ -51,6 +51,7 @@ class TestAnalyzerGenerateText:
             mock_call.assert_called_once_with(
                 "写一份复盘",
                 generation_config={"max_tokens": 1024, "temperature": 0.5},
+                system_prompt=None,
             )
 
     def test_generate_text_returns_none_on_failure(self):

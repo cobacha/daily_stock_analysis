@@ -9,8 +9,10 @@ import LoginPage from './pages/LoginPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ChatPage from './pages/ChatPage';
 import PortfolioPage from './pages/PortfolioPage';
+import MarketPage from './pages/MarketPage';
 import { ApiErrorAlert } from './components/common';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { useAgentChatStore } from './stores/agentChatStore';
 import './App.css';
 
@@ -48,6 +50,13 @@ const ChatIcon: React.FC<{ active?: boolean }> = ({active}) => (
     </svg>
 );
 
+const MarketIcon: React.FC<{ active?: boolean }> = ({active}) => (
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 2 : 1.5}
+              d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
+    </svg>
+);
+
 const LogoutIcon: React.FC = () => (
     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
@@ -74,6 +83,12 @@ const NAV_ITEMS: DockItem[] = [
         label: '问股',
         to: '/chat',
         icon: ChatIcon,
+    },
+    {
+        key: 'market',
+        label: '大盘',
+        to: '/market',
+        icon: MarketIcon,
     },
     {
         key: 'portfolio',
@@ -218,6 +233,7 @@ const AppContent: React.FC = () => {
                 <Routes>
                     <Route path="/" element={<HomePage/>}/>
                     <Route path="/chat" element={<ChatPage/>}/>
+                    <Route path="/market" element={<MarketPage/>}/>
                     <Route path="/portfolio" element={<PortfolioPage/>}/>
                     <Route path="/backtest" element={<BacktestPage/>}/>
                     <Route path="/settings" element={<SettingsPage/>}/>
@@ -231,11 +247,13 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
     return (
-        <Router>
-            <AuthProvider>
-                <AppContent/>
-            </AuthProvider>
-        </Router>
+        <ThemeProvider>
+            <Router>
+                <AuthProvider>
+                    <AppContent/>
+                </AuthProvider>
+            </Router>
+        </ThemeProvider>
     );
 };
 

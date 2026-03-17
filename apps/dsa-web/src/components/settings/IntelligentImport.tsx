@@ -270,8 +270,8 @@ export const IntelligentImport: React.FC<IntelligentImportProps> = ({
   const checkedCount = items.filter((i) => i.checked && i.code).length;
 
   return (
-    <div className="rounded-xl border border-white/8 bg-elevated/40 p-4">
-      <p className="mb-2 text-sm font-medium text-white">智能导入</p>
+    <div className="rounded-xl border border-surface bg-elevated/40 p-4">
+      <p className="mb-2 text-sm font-medium text-foreground">智能导入</p>
       <p className="mb-3 text-xs text-muted-text">
         支持图片、CSV/Excel 文件、剪贴板粘贴。图片需配置 Vision API。建议人工核对后再合并。
       </p>
@@ -281,7 +281,7 @@ export const IntelligentImport: React.FC<IntelligentImportProps> = ({
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
         className={`mb-3 flex min-h-[80px] flex-col gap-4 rounded-lg border-2 border-dashed p-4 transition ${
-          isDragging ? 'border-accent bg-cyan/5' : 'border-white/16'
+          isDragging ? 'border-accent bg-cyan/5' : 'border-surface-strong'
         } ${disabled || isLoading ? 'cursor-not-allowed opacity-60' : ''}`}
       >
         <div className="flex flex-wrap items-center gap-2">
@@ -297,7 +297,7 @@ export const IntelligentImport: React.FC<IntelligentImportProps> = ({
         <div className="flex gap-2">
           <textarea
             placeholder="或粘贴 CSV/Excel 复制的文本..."
-            className="min-h-[60px] w-full rounded-lg border border-white/16 bg-card/60 px-2 py-1.5 text-sm text-white placeholder:text-muted-text"
+            className="min-h-[60px] w-full rounded-lg border border-surface-strong bg-card/60 px-2 py-1.5 text-sm text-foreground placeholder:text-muted-text"
             value={pasteText}
             onChange={(e) => setPasteText(e.target.value)}
             disabled={disabled || isLoading}
@@ -323,13 +323,13 @@ export const IntelligentImport: React.FC<IntelligentImportProps> = ({
               共 {validCount} 条可合并，已勾选 {checkedCount} 条
             </span>
             <div className="flex gap-2">
-              <button type="button" className="text-xs text-muted-text hover:text-white" onClick={() => toggleAll(true)}>
+              <button type="button" className="text-xs text-muted-text hover:text-foreground" onClick={() => toggleAll(true)}>
                 全选
               </button>
-              <button type="button" className="text-xs text-muted-text hover:text-white" onClick={() => toggleAll(false)}>
+              <button type="button" className="text-xs text-muted-text hover:text-foreground" onClick={() => toggleAll(false)}>
                 取消
               </button>
-              <button type="button" className="text-xs text-muted-text hover:text-white" onClick={clearAll}>
+              <button type="button" className="text-xs text-muted-text hover:text-foreground" onClick={clearAll}>
                 清空
               </button>
             </div>
@@ -339,7 +339,7 @@ export const IntelligentImport: React.FC<IntelligentImportProps> = ({
               <div
                 key={it.id}
                 className={`flex items-center gap-2 rounded-lg border px-2 py-1.5 text-sm ${
-                  it.code ? 'border-white/16 bg-card/60' : 'border-red-500/30 bg-red-500/10'
+                  it.code ? 'border-surface-strong bg-card/60' : 'border-red-500/30 bg-red-500/10'
                 }`}
               >
                 <input
@@ -349,7 +349,7 @@ export const IntelligentImport: React.FC<IntelligentImportProps> = ({
                   disabled={!it.code || disabled}
                   className="rounded"
                 />
-                <span className={it.code ? 'text-white' : 'text-red-400'}>
+                <span className={it.code ? 'text-foreground' : 'text-red-400'}>
                   {it.code || '解析失败'}
                 </span>
                 {it.name && <span className="text-muted-text">({it.name})</span>}
@@ -358,7 +358,7 @@ export const IntelligentImport: React.FC<IntelligentImportProps> = ({
                 </span>
                 <button
                   type="button"
-                  className="text-muted-text hover:text-white"
+                  className="text-muted-text hover:text-foreground"
                   onClick={() => removeItem(it.id)}
                   disabled={disabled}
                 >

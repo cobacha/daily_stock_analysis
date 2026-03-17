@@ -34,15 +34,41 @@ from api.v1.schemas.common import HealthResponse
 from src.services.system_config_service import SystemConfigService
 
 
+async def _warm_market_cache() -> None:
+    """启动后后台预生成当日大盘复盘（若尚无缓存）。"""
+    import asyncio
+    import logging
+    _logger = logging.getLogger(__name__)
+    await asyncio.sleep(5)  # 等待服务完全就绪
+    try:
+        from src.services.market_service import MarketService
+        svc = MarketService()
+        if svc.get_cached_review("cn") is not None:
+            _logger.info("[大盘预热] 当日缓存已存在，跳过预生成")
+            return
+        _logger.info("[大盘预热] 无当日缓存，开始后台生成...")
+        from api.v1.endpoints.market import _run_market_review
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, _run_market_review, "cn")
+        _logger.info("[大盘预热] 完成")
+    except Exception as e:
+        _logger.warning(f"[大盘预热] 失败（不影响启动）: {e}")
+
+
 @asynccontextmanager
 async def app_lifespan(app: FastAPI):
     """Initialize and release shared services for the app lifecycle."""
+    import asyncio
     app.state.system_config_service = SystemConfigService()
+    # 后台预热大盘缓存，不阻塞启动
+    warmup_task = asyncio.create_task(_warm_market_cache())
+    app.state.market_warmup_task = warmup_task
     try:
         yield
     finally:
         if hasattr(app.state, "system_config_service"):
             delattr(app.state, "system_config_service")
+        warmup_task.cancel()
 
 
 def create_app(static_dir: Optional[Path] = None) -> FastAPI:

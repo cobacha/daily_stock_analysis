@@ -31,7 +31,8 @@ def run_market_review(
     send_notification: bool = True,
     merge_notification: bool = False,
     override_region: Optional[str] = None,
-) -> Optional[str]:
+    region: Optional[str] = None,
+) -> Optional[dict]:
     """
     执行大盘复盘分析
 
@@ -42,22 +43,32 @@ def run_market_review(
         send_notification: 是否发送通知
         merge_notification: 是否合并推送（跳过本次推送，由 main 层合并个股+大盘后统一发送，Issue #190）
         override_region: 覆盖 config 的 market_review_region（Issue #373 交易日过滤后有效子集）
+        region: 市场区域（cn / us / both），优先级高于 override_region 和 config
 
     Returns:
-        复盘报告文本
+        dict with keys:
+            - "overview": MarketOverview 对象（both 模式下为 A 股 overview，可能为 None）
+            - "review_text": 复盘报告文本字符串
     """
     logger.info("开始执行大盘复盘分析...")
     config = get_config()
-    region = (
-        override_region
-        if override_region is not None
-        else (getattr(config, 'market_review_region', 'cn') or 'cn')
+    # region 参数优先级：region > override_region > config
+    effective_region = (
+        region
+        if region is not None
+        else (
+            override_region
+            if override_region is not None
+            else (getattr(config, 'market_review_region', 'cn') or 'cn')
+        )
     )
-    if region not in ('cn', 'us', 'both'):
-        region = 'cn'
+    if effective_region not in ('cn', 'us', 'both'):
+        effective_region = 'cn'
+
+    market_overview = None
 
     try:
-        if region == 'both':
+        if effective_region == 'both':
             # 顺序执行 A 股 + 美股，合并报告
             cn_analyzer = MarketAnalyzer(
                 search_service=search_service, analyzer=analyzer, region='cn'
@@ -66,6 +77,7 @@ def run_market_review(
                 search_service=search_service, analyzer=analyzer, region='us'
             )
             logger.info("生成 A 股大盘复盘报告...")
+            market_overview = cn_analyzer.get_market_overview()
             cn_report = cn_analyzer.run_daily_review()
             logger.info("生成美股大盘复盘报告...")
             us_report = us_analyzer.run_daily_review()
@@ -82,19 +94,47 @@ def run_market_review(
             market_analyzer = MarketAnalyzer(
                 search_service=search_service,
                 analyzer=analyzer,
-                region=region,
+                region=effective_region,
             )
+            market_overview = market_analyzer.get_market_overview()
             review_report = market_analyzer.run_daily_review()
-        
+
         if review_report:
             # 保存报告到文件
             date_str = datetime.now().strftime('%Y%m%d')
             report_filename = f"market_review_{date_str}.md"
             filepath = notifier.save_report_to_file(
-                f"# 🎯 大盘复盘\n\n{review_report}", 
+                f"# 🎯 大盘复盘\n\n{review_report}",
                 report_filename
             )
             logger.info(f"大盘复盘报告已保存: {filepath}")
+
+            # 写入 DB 缓存，使 CLI 和 API 路径共享同一份当日缓存
+            try:
+                from src.services.market_service import MarketService
+                _overview_dict = {}
+                if market_overview is not None:
+                    _overview_dict = {
+                        "date": getattr(market_overview, "date", ""),
+                        "indices": [idx.to_dict() for idx in getattr(market_overview, "indices", [])],
+                        "up_count": getattr(market_overview, "up_count", 0),
+                        "down_count": getattr(market_overview, "down_count", 0),
+                        "flat_count": getattr(market_overview, "flat_count", 0),
+                        "limit_up_count": getattr(market_overview, "limit_up_count", 0),
+                        "limit_down_count": getattr(market_overview, "limit_down_count", 0),
+                        "total_amount": getattr(market_overview, "total_amount", 0.0),
+                        "top_sectors": getattr(market_overview, "top_sectors", []),
+                        "bottom_sectors": getattr(market_overview, "bottom_sectors", []),
+                        "review_text": review_report,
+                    }
+                MarketService().save_review(
+                    region=effective_region if effective_region in ('cn', 'us') else 'cn',
+                    overview_dict=_overview_dict,
+                    review_text=review_report,
+                )
+                logger.info("[大盘复盘] 已写入 DB 缓存")
+            except Exception as _e:
+                logger.warning(f"[大盘复盘] 写入 DB 缓存失败（不影响报告生成）: {_e}")
             
             # 推送通知（合并模式下跳过，由 main 层统一发送）
             if merge_notification and send_notification:
@@ -111,9 +151,9 @@ def run_market_review(
             elif not send_notification:
                 logger.info("已跳过推送通知 (--no-notify)")
             
-            return review_report
-        
+            return {"overview": market_overview, "review_text": review_report}
+
     except Exception as e:
         logger.error(f"大盘复盘分析失败: {e}")
-    
+
     return None
