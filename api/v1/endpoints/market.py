@@ -18,8 +18,10 @@ def _run_market_review(region: str) -> dict:
     导入放在函数内，避免启动时加载重量级依赖。
     """
     from src.core.market_review import run_market_review
+    from src.notification import NotificationService
 
-    result = run_market_review(region=region)
+    notifier = NotificationService()
+    result = run_market_review(notifier, region=region, send_notification=False)
     # run_market_review 返回 {"overview": MarketOverview, "review_text": str} 或 None
     if result is None:
         raise HTTPException(status_code=503, detail="大盘数据获取失败，请稍后重试")
