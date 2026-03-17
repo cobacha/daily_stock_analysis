@@ -215,7 +215,7 @@ export const ReportPriceHistory: React.FC<ReportPriceHistoryProps> = ({ stockCod
       <div className="mb-3 flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-baseline gap-2">
           <span className="label-uppercase">PRICE</span>
-          <h3 className="text-base font-semibold text-white">价格走势</h3>
+          <h3 className="text-base font-semibold text-foreground">价格走势</h3>
         </div>
 
         {/* 周期选择器 */}
@@ -228,7 +228,7 @@ export const ReportPriceHistory: React.FC<ReportPriceHistoryProps> = ({ stockCod
               className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
                 activePeriod === p.key
                   ? 'bg-cyan/15 text-cyan'
-                  : 'text-muted-text hover:text-white'
+                  : 'text-muted-text hover:text-foreground'
               }`}
             >
               {p.label}
@@ -313,7 +313,7 @@ export const ReportPriceHistory: React.FC<ReportPriceHistoryProps> = ({ stockCod
           {/* 关键数据 */}
           <div className="grid grid-cols-4 gap-2">
             {[
-              { label: period.statLabels[0], value: fmt(statStart), color: 'text-white' },
+              { label: period.statLabels[0], value: fmt(statStart), color: 'text-foreground' },
               { label: period.statLabels[1], value: fmt(statEnd), color: isPositive ? 'text-[#ff4d4d]' : 'text-[#00d46a]' },
               { label: period.statLabels[2], value: fmt(statHigh), color: 'text-[#ff4d4d]' },
               { label: period.statLabels[3], value: fmt(statLow), color: 'text-[#00d46a]' },

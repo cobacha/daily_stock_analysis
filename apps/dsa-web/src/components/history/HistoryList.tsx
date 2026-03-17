@@ -179,7 +179,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold text-white truncate text-sm tracking-tight">
+                        <span className="font-semibold text-foreground truncate text-sm tracking-tight">
                           {item.stockName || item.stockCode}
                         </span>
                         {item.sentimentScore !== undefined && (

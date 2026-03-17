@@ -55,7 +55,7 @@ export const ReportDetails: React.FC<ReportDetailsProps> = ({
     <Card variant="bordered" padding="md" className="text-left">
       <div className="mb-3 flex items-baseline gap-2">
         <span className="label-uppercase">TRANSPARENCY</span>
-        <h3 className="text-base font-semibold text-white mt-0.5">数据追溯</h3>
+        <h3 className="text-base font-semibold text-foreground mt-0.5">数据追溯</h3>
       </div>
 
       {/* Record ID */}
@@ -78,7 +78,7 @@ export const ReportDetails: React.FC<ReportDetailsProps> = ({
               onClick={() => setShowRaw(!showRaw)}
               className="w-full flex items-center justify-between p-2.5 rounded-lg bg-elevated hover:bg-hover transition-colors"
             >
-              <span className="text-xs text-white">原始分析结果</span>
+              <span className="text-xs text-foreground">原始分析结果</span>
               <svg
                 className={`w-3.5 h-3.5 text-muted-text transition-transform ${showRaw ? 'rotate-180' : ''}`}
                 fill="none"
@@ -104,7 +104,7 @@ export const ReportDetails: React.FC<ReportDetailsProps> = ({
               onClick={() => setShowSnapshot(!showSnapshot)}
               className="w-full flex items-center justify-between p-2.5 rounded-lg bg-elevated hover:bg-hover transition-colors"
             >
-              <span className="text-xs text-white">分析快照</span>
+              <span className="text-xs text-foreground">分析快照</span>
               <svg
                 className={`w-3.5 h-3.5 text-muted-text transition-transform ${showSnapshot ? 'rotate-180' : ''}`}
                 fill="none"

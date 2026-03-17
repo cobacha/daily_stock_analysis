@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { marketApi, type MarketReviewResponse } from '../api/market';
 import { Card } from '../components/common';
+import { MarketReviewMarkdown } from '../components/market/MarketReviewMarkdown';
 
 type Region = 'cn' | 'us';
 const REGION_LABELS: Record<Region, string> = { cn: 'A股', us: '美股' };
@@ -179,12 +178,21 @@ const MarketPage: React.FC = () => {
 
             {data.review_text && (
               <Card variant="bordered" padding="md">
-                <h2 className="text-sm font-semibold text-white mb-3">AI 复盘</h2>
-                <div className="prose prose-invert prose-sm max-w-none">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {data.review_text}
-                  </ReactMarkdown>
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="flex items-center gap-1.5 rounded-md bg-cyan/10 px-2 py-0.5 text-xs font-medium text-cyan">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    AI 复盘
+                  </span>
+                  {data.generated_at && (
+                    <span className="text-xs text-muted-text">
+                      {new Date(data.generated_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })} 生成
+                    </span>
+                  )}
                 </div>
+                <MarketReviewMarkdown content={data.review_text} />
               </Card>
             )}
           </>

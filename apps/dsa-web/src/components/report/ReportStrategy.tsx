@@ -70,7 +70,7 @@ export const ReportStrategy: React.FC<ReportStrategyProps> = ({ strategy }) => {
     <Card variant="bordered" padding="md">
       <div className="mb-3 flex items-baseline gap-2">
         <span className="label-uppercase">STRATEGY POINTS</span>
-        <h3 className="text-base font-semibold text-white">狙击点位</h3>
+        <h3 className="text-base font-semibold text-foreground">狙击点位</h3>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {strategyItems.map((item) => (

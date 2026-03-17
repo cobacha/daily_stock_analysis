@@ -52,7 +52,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
       {/* 任务信息 */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-white truncate">
+          <span className="text-sm font-medium text-foreground truncate">
             {task.stockName || task.stockCode}
           </span>
           <span className="text-xs text-muted-text">
@@ -132,7 +132,7 @@ export const TaskPanel: React.FC<TaskPanelProps> = ({
               d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
             />
           </svg>
-          <span className="text-sm font-medium text-white">{title}</span>
+          <span className="text-sm font-medium text-foreground">{title}</span>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-text">
           {processingCount > 0 && (

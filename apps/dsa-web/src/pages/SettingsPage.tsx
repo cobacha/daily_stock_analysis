@@ -109,7 +109,7 @@ const SettingsPage: React.FC = () => {
       <header className="mb-4 rounded-2xl border border-white/8 bg-card/80 p-4 backdrop-blur-sm">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-white">系统设置</h1>
+            <h1 className="text-xl font-semibold text-foreground">系统设置</h1>
             <p className="text-sm text-secondary">
               默认使用 .env 中的配置
             </p>
@@ -192,8 +192,8 @@ const SettingsPage: React.FC = () => {
                     type="button"
                     className={`w-full rounded-lg border px-3 py-2 text-left transition ${
                       isActive
-                        ? 'border-accent bg-cyan/10 text-white'
-                        : 'border-white/8 bg-elevated/40 text-secondary hover:border-white/16 hover:text-white'
+                        ? 'border-accent bg-cyan/10 text-foreground'
+                        : 'border-white/8 bg-elevated/40 text-secondary hover:border-white/16 hover:text-foreground'
                     }`}
                     onClick={() => setActiveCategory(category.category)}
                   >

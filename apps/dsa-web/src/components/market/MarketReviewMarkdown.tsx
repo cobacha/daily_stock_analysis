@@ -10,7 +10,7 @@ const mdComponents: Components = {
   // h2 (## 日期 + 标题) — 带分割线的区块标题
   h2: ({ children }) => (
     <div className="flex items-center gap-3 mt-5 mb-2.5 first:mt-0">
-      <span className="text-sm font-semibold text-primary whitespace-nowrap">{children}</span>
+      <span className="text-sm font-semibold text-foreground whitespace-nowrap">{children}</span>
       <div className="flex-1 h-px bg-white/6 [[data-theme=light]_&]:bg-black/8" />
     </div>
   ),
@@ -36,7 +36,7 @@ const mdComponents: Components = {
 
   // 加粗
   strong: ({ children }) => (
-    <strong className="font-semibold text-white">{children}</strong>
+    <strong className="font-semibold text-foreground">{children}</strong>
   ),
 
   // 斜体（报尾免责声明等）
