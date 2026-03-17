@@ -16,6 +16,8 @@ from typing import Dict, Optional, Set
 
 from src.data.stock_mapping import STOCK_NAME_MAP
 from src.services.stock_code_utils import is_code_like, normalize_code
+from src.search_service import get_search_service
+from src.agent.llm_adapter import LLMToolAdapter
 
 logger = logging.getLogger(__name__)
 
@@ -152,5 +154,34 @@ def resolve_name_to_code(name: str) -> Optional[str]:
             logger.debug(f"[NameResolver] 命中模糊匹配: input={s}, matched={matches[0]}")
             return all_name_to_code[matches[0]]
 
-    logger.debug(f"[NameResolver] 解析失败: {s}")
+    # 6. Web Search + LLM Extraction Fallback
+    logger.info(f"[NameResolver] 常规解析落空，触发搜索与大模型辅助猜测: {s}")
+    try:
+        search_svc = get_search_service()
+        search_resp = search_svc.search(query=f"{s} 股票代码", max_results=3)
+        if search_resp and search_resp.results:
+            snippets = "\n".join([f"- {r.title}: {r.snippet}" for r in search_resp.results])
+
+            prompt = (
+                f"根据以下网络搜索结果，提取出'{s}'对应的唯一有效股票代码。\n"
+                f"搜索结果：\n{snippets}\n\n"
+                f"请分析结果，只输出可以直接用于查询的股票代码（例如A股为6位纯数字如600519，港股格式如00700，美股为字母如AAPL）。"
+                f"注意：只能输出纯代码本身，不要输出任何多余解释。如果实在找不到代码，请输出 'NONE'。"
+            )
+
+            llm = LLMToolAdapter()
+            llm_resp = llm.call_text([{"role": "user", "content": prompt}], temperature=0.1)
+
+            if llm_resp and llm_resp.content:
+                result_code = llm_resp.content.strip().upper()
+                # Clean up if the model includes unwanted prefixes sometimes
+                result_code = result_code.replace("代码:", "").replace("代码：", "").strip()
+
+                if result_code and result_code != 'NONE' and _is_code_like(result_code):
+                    logger.info(f"[NameResolver] 搜索加模型解析成功: {s} -> {result_code}")
+                    return _normalize_code(result_code)
+    except Exception as e:
+        logger.warning(f"[NameResolver] 搜索与辅助解析发生错误: {e}")
+
+    logger.debug(f"[NameResolver] 解析彻底失败: {s}")
     return None
