@@ -33,6 +33,7 @@ from src.enums import ReportType
 from src.stock_analyzer import StockTrendAnalyzer, TrendAnalysisResult
 from src.collectors.technical_pattern_labeler import TechnicalPatternLabeler
 from src.collectors.news_preprocessor import NewsPreprocessor
+from src.collectors.fund_flow_collector import FundFlowCollector
 from src.core.trading_calendar import get_market_for_stock, is_market_open
 from bot.models import BotMessage
 
@@ -86,6 +87,7 @@ class StockAnalysisPipeline:
         self.trend_analyzer = StockTrendAnalyzer()  # 趋势分析器
         self.pattern_labeler = TechnicalPatternLabeler()
         self.news_preprocessor = NewsPreprocessor()
+        self.fund_flow_collector = FundFlowCollector()
         self.analyzer = GeminiAnalyzer()
         self.notifier = NotificationService(source_message=source_message)
         
@@ -355,6 +357,18 @@ class StockAnalysisPipeline:
             else:
                 logger.info(f"{stock_name}({code}) 搜索服务不可用，跳过情报搜索")
 
+            # Phase 3: 资金流向收集
+            fund_flow_data = None
+            try:
+                fund_flow_data = self.fund_flow_collector.collect(code)
+                if fund_flow_data.has_data:
+                    logger.info(
+                        f"{stock_name}({code}) 资金流向: "
+                        f"主力1日={fund_flow_data.main_net_inflow_1d:.0f}万"
+                    )
+            except Exception as e:
+                logger.warning(f"{stock_name}({code}) 资金流向收集失败: {e}")
+
             # Step 5: 获取分析上下文（技术面数据）
             context = self.db.get_analysis_context(code)
 
@@ -377,6 +391,7 @@ class StockAnalysisPipeline:
                 trend_result,
                 stock_name,  # 传入股票名称
                 fundamental_context,
+                fund_flow_data,
             )
 
             # Phase 2: 注入分类新闻摘要
@@ -450,7 +465,8 @@ class StockAnalysisPipeline:
         chip_data: Optional[ChipDistribution],
         trend_result: Optional[TrendAnalysisResult],
         stock_name: str = "",
-        fundamental_context: Optional[Dict[str, Any]] = None
+        fundamental_context: Optional[Dict[str, Any]] = None,
+        fund_flow_data: Optional[Any] = None,
     ) -> Dict[str, Any]:
         """
         增强分析上下文
@@ -603,6 +619,16 @@ class StockAnalysisPipeline:
                 "invalid fundamental context",
             )
         )
+
+        # Phase 3: 注入资金流向
+        if fund_flow_data and fund_flow_data.has_data:
+            enhanced['fund_flow'] = {
+                'main_net_inflow_1d': fund_flow_data.main_net_inflow_1d,
+                'main_net_inflow_3d': fund_flow_data.main_net_inflow_3d,
+                'main_net_inflow_5d': fund_flow_data.main_net_inflow_5d,
+                'northbound_trend': fund_flow_data.northbound_trend,
+                'lhb_records': fund_flow_data.lhb_records,
+            }
 
         return enhanced
 

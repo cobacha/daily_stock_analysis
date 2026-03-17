@@ -1168,6 +1168,23 @@ class GeminiAnalyzer:
 {', '.join(technical_labels)}
 """
 
+        # Phase 3: 注入资金流向数据
+        fund_flow = context.get('fund_flow', {})
+        if fund_flow:
+            fund_section = "\n\n**资金面**:"
+            if fund_flow.get('main_net_inflow_1d') is not None:
+                val = fund_flow['main_net_inflow_1d']
+                direction = "净流入" if val > 0 else "净流出"
+                fund_section += f"\n- 主力资金(1日): {direction} {abs(val):.0f}万"
+            if fund_flow.get('main_net_inflow_3d') is not None:
+                val = fund_flow['main_net_inflow_3d']
+                direction = "净流入" if val > 0 else "净流出"
+                fund_section += f"\n- 主力资金(3日): {direction} {abs(val):.0f}万"
+            lhb = fund_flow.get('lhb_records', [])
+            if lhb:
+                fund_section += f"\n- 近期龙虎榜: {len(lhb)}条记录"
+            prompt += fund_section
+
         # 添加昨日对比数据
         if 'yesterday' in context:
             volume_change = context.get('volume_change_ratio', 'N/A')
