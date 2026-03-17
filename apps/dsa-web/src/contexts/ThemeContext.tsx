@@ -1,6 +1,7 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 
+// eslint-disable-next-line react-refresh/only-export-components -- hooks co-located with context
 type Theme = 'dark' | 'light';
 
 type ThemeContextValue = {
@@ -11,9 +12,14 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem('dsa-theme') as Theme) ?? 'dark'
-  );
+  const [theme, setTheme] = useState<Theme>(() => {
+    try {
+      const stored = localStorage.getItem('dsa-theme');
+      return stored === 'light' ? 'light' : 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
 
   useEffect(() => {
     if (theme === 'light') {
@@ -24,7 +30,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('dsa-theme', theme);
   }, [theme]);
 
-  const toggle = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const toggle = useCallback(() => setTheme((t) => (t === 'dark' ? 'light' : 'dark')), []);
 
   return (
     <ThemeContext.Provider value={{ theme, toggle }}>

@@ -1012,8 +1012,3 @@ textarea {
   background: rgba(0, 0, 0, 0.2);
 }
 
-/* body background */
-[data-theme="light"] body {
-  background: var(--bg-base);
-  color: var(--text-primary);
-}
