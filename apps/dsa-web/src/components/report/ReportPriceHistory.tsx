@@ -21,7 +21,7 @@ interface ChartPoint {
   label: string;
 }
 
-type PeriodKey = 'today' | '5d' | '10d' | 'month' | 'quarter';
+type PeriodKey = 'today' | '5d' | '10d' | 'month' | 'quarter' | '1y';
 
 interface PeriodConfig {
   key: PeriodKey;
@@ -94,6 +94,22 @@ const PERIODS: PeriodConfig[] = [
       return idx % step === 0 || idx === total - 1 ? mmdd2(date) : '';
     },
   },
+  {
+    key: '1y',
+    label: '年度',
+    statLabels: ['年初开盘', '最新收盘', '年内最高', '年内最低'],
+    filter: (data, now) => {
+      const yearStart = `${now.getFullYear()}-01`;
+      return data.filter((d) => d.date >= yearStart);
+    },
+    xLabel: (date, idx, total) => {
+      // 每隔约30条（约1个月）显示一个月份标签
+      const step = Math.max(1, Math.floor(total / 12));
+      return idx % step === 0 || idx === total - 1
+        ? `${date.slice(5, 7)}月`
+        : '';
+    },
+  },
 ];
 
 const CustomTooltip = ({
@@ -127,8 +143,9 @@ export const ReportPriceHistory: React.FC<ReportPriceHistoryProps> = ({ stockCod
     setIsLoading(true);
     setError(null);
 
+    const days = activePeriod === '1y' ? 365 : 180;
     stocksApi
-      .getHistory(stockCode, 180) // 拉取180天数据覆盖所有周期
+      .getHistory(stockCode, days)
       .then((res) => {
         if (cancelled) return;
         setAllKlines(res.data);
@@ -143,7 +160,7 @@ export const ReportPriceHistory: React.FC<ReportPriceHistoryProps> = ({ stockCod
       });
 
     return () => { cancelled = true; };
-  }, [stockCode]);
+  }, [stockCode, activePeriod]);
 
   const period = PERIODS.find((p) => p.key === activePeriod)!;
 
