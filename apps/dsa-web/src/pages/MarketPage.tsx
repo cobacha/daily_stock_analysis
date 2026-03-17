@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { marketApi, type MarketReviewResponse } from '../api/market';
 import { Card } from '../components/common';
+
+type Region = 'cn' | 'us';
+const REGION_LABELS: Record<Region, string> = { cn: 'A股', us: '美股' };
 
 const fmt = (v: number) => v.toFixed(2);
 const fmtPct = (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`;
@@ -10,28 +15,30 @@ const bgOf = (v: number) =>
   v > 0 ? 'bg-[#ff4d4d]/10' : v < 0 ? 'bg-[#00d46a]/10' : 'bg-white/5';
 
 const MarketPage: React.FC = () => {
+  const [region, setRegion] = useState<Region>('cn');
   const [data, setData] = useState<MarketReviewResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(() => {
+  const load = useCallback((r: Region) => {
     setLoading(true);
     setError(null);
+    setData(null);
     marketApi
-      .getReview('cn')
+      .getReview(r)
       .then(setData)
       .catch(() => setError('大盘数据获取失败，请稍后重试'))
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load(region); }, [load, region]);
 
   const handleRefresh = () => {
     setRefreshing(true);
     setError(null);
     marketApi
-      .refreshReview('cn')
+      .refreshReview(region)
       .then(setData)
       .catch(() => setError('复盘刷新失败，请稍后重试'))
       .finally(() => setRefreshing(false));
@@ -40,10 +47,25 @@ const MarketPage: React.FC = () => {
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       <div className="sticky top-0 z-10 bg-base border-b border-white/5 px-4 py-3 flex items-center justify-between">
-        <div>
+        <div className="flex items-center gap-3">
           <h1 className="text-base font-semibold text-white">大盘分析</h1>
+          {/* A股/美股 切换 */}
+          <div className="flex items-center gap-0.5 bg-elevated rounded-lg p-0.5">
+            {(['cn', 'us'] as Region[]).map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setRegion(r)}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                  region === r ? 'bg-cyan/15 text-cyan' : 'text-muted-text hover:text-white'
+                }`}
+              >
+                {REGION_LABELS[r]}
+              </button>
+            ))}
+          </div>
           {data && (
-            <p className="text-xs text-muted-text mt-0.5">
+            <p className="text-xs text-muted-text">
               {data.date}
               {data.cached && <span className="ml-2 text-cyan/60">已缓存</span>}
             </p>
@@ -158,8 +180,10 @@ const MarketPage: React.FC = () => {
             {data.review_text && (
               <Card variant="bordered" padding="md">
                 <h2 className="text-sm font-semibold text-white mb-3">AI 复盘</h2>
-                <div className="prose prose-invert prose-sm max-w-none text-sm text-secondary-text leading-relaxed whitespace-pre-wrap">
-                  {data.review_text}
+                <div className="prose prose-invert prose-sm max-w-none">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {data.review_text}
+                  </ReactMarkdown>
                 </div>
               </Card>
             )}
