@@ -34,6 +34,7 @@ from src.stock_analyzer import StockTrendAnalyzer, TrendAnalysisResult
 from src.collectors.technical_pattern_labeler import TechnicalPatternLabeler
 from src.collectors.news_preprocessor import NewsPreprocessor
 from src.collectors.fund_flow_collector import FundFlowCollector
+from src.collectors.peer_comparison_collector import PeerComparisonCollector
 from src.core.trading_calendar import get_market_for_stock, is_market_open
 from bot.models import BotMessage
 
@@ -88,6 +89,7 @@ class StockAnalysisPipeline:
         self.pattern_labeler = TechnicalPatternLabeler()
         self.news_preprocessor = NewsPreprocessor()
         self.fund_flow_collector = FundFlowCollector()
+        self.peer_collector = PeerComparisonCollector()
         self.analyzer = GeminiAnalyzer()
         self.notifier = NotificationService(source_message=source_message)
         
@@ -369,6 +371,18 @@ class StockAnalysisPipeline:
             except Exception as e:
                 logger.warning(f"{stock_name}({code}) 资金流向收集失败: {e}")
 
+            # Phase 4: 同行对比收集
+            peer_data = None
+            try:
+                peer_data = self.peer_collector.collect(code, stock_name)
+                if peer_data.has_data:
+                    logger.info(
+                        f"{stock_name}({code}) 同行对比: 板块={peer_data.sector_name}, "
+                        f"板块涨跌={peer_data.sector_change_pct:.2f}%"
+                    )
+            except Exception as e:
+                logger.warning(f"{stock_name}({code}) 同行对比收集失败: {e}")
+
             # Step 5: 获取分析上下文（技术面数据）
             context = self.db.get_analysis_context(code)
 
@@ -410,6 +424,18 @@ class StockAnalysisPipeline:
                             'recency_weight': item.recency_weight,
                         }
                         for item in classified_news.items
+                    ],
+                }
+
+            # Phase 4: 注入同行对比
+            if peer_data and peer_data.has_data:
+                enhanced_context['peer_comparison'] = {
+                    'sector_name': peer_data.sector_name,
+                    'sector_change_pct': peer_data.sector_change_pct,
+                    'target_rank': peer_data.target_rank_in_sector,
+                    'peers': [
+                        {'code': p.code, 'name': p.name, 'change_pct': p.change_pct}
+                        for p in peer_data.peers
                     ],
                 }
 

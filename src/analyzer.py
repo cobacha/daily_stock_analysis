@@ -1185,6 +1185,19 @@ class GeminiAnalyzer:
                 fund_section += f"\n- 近期龙虎榜: {len(lhb)}条记录"
             prompt += fund_section
 
+        # Phase 4: 注入同行板块对比数据
+        peer = context.get('peer_comparison', {})
+        if peer:
+            peer_section = f"\n\n**同行板块对比** ({peer.get('sector_name', '')}板块):"
+            peer_section += f"\n- 板块整体涨跌: {peer.get('sector_change_pct', 0):.2f}%"
+            if peer.get('target_rank'):
+                peer_section += f"\n- 目标股板块排名: 第{peer['target_rank']}位"
+            peers_list = peer.get('peers', [])
+            if peers_list:
+                peer_lines = [f"  {p['name']}({p['code']}): {p['change_pct']:+.2f}%" for p in peers_list[:3]]
+                peer_section += "\n- 主要竞品:\n" + "\n".join(peer_lines)
+            prompt += peer_section
+
         # 添加昨日对比数据
         if 'yesterday' in context:
             volume_change = context.get('volume_change_ratio', 'N/A')
