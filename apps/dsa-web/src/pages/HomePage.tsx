@@ -2,6 +2,7 @@ import type React from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ApiErrorAlert, ConfirmDialog } from '../components/common';
+import { MarketTopBar } from '../components/market/MarketTopBar';
 import { getParsedApiError } from '../api/error';
 import type { HistoryItem, AnalysisReport, TaskInfo } from '../types/analysis';
 import { historyApi } from '../api/history';
@@ -404,10 +405,12 @@ const HomePage: React.FC = () => {
   );
 
   return (
-    <div
-      className="min-h-screen flex flex-col md:grid overflow-hidden w-full"
-      style={{ gridTemplateColumns: 'minmax(12px, 1fr) 256px 24px minmax(auto, 896px) minmax(12px, 1fr)', gridTemplateRows: 'auto 1fr' }}
-    >
+    <div className="min-h-screen flex flex-col overflow-hidden w-full">
+      <MarketTopBar />
+      <div
+        className="flex flex-col md:grid flex-1 overflow-hidden"
+        style={{ gridTemplateColumns: 'minmax(12px, 1fr) 256px 24px minmax(auto, 896px) minmax(12px, 1fr)', gridTemplateRows: 'auto 1fr' }}
+      >
       {/* Top Input Bar */}
       <header
         className="md:col-start-2 md:col-end-5 md:row-start-1 py-3 px-3 md:px-0 border-b border-white/5 flex-shrink-0 flex items-center min-w-0 overflow-hidden"
@@ -567,6 +570,7 @@ const HomePage: React.FC = () => {
         onConfirm={handleDeleteSelectedHistory}
         onCancel={() => setShowDeleteConfirm(false)}
       />
+      </div>
     </div>
   );
 };
