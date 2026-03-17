@@ -32,6 +32,7 @@ from src.search_service import SearchService
 from src.enums import ReportType
 from src.stock_analyzer import StockTrendAnalyzer, TrendAnalysisResult
 from src.collectors.technical_pattern_labeler import TechnicalPatternLabeler
+from src.collectors.news_preprocessor import NewsPreprocessor
 from src.core.trading_calendar import get_market_for_stock, is_market_open
 from bot.models import BotMessage
 
@@ -84,6 +85,7 @@ class StockAnalysisPipeline:
         # 不再单独创建 akshare_fetcher，统一使用 fetcher_manager 获取增强数据
         self.trend_analyzer = StockTrendAnalyzer()  # 趋势分析器
         self.pattern_labeler = TechnicalPatternLabeler()
+        self.news_preprocessor = NewsPreprocessor()
         self.analyzer = GeminiAnalyzer()
         self.notifier = NotificationService(source_message=source_message)
         
@@ -330,6 +332,26 @@ class StockAnalysisPipeline:
                                 )
                     except Exception as e:
                         logger.warning(f"{stock_name}({code}) 保存新闻情报失败: {e}")
+
+                    # Phase 2: 新闻LLM分类预处理
+                    classified_news = None
+                    try:
+                        all_raw_results = []
+                        for dim_resp in intel_results.values():
+                            if dim_resp and dim_resp.success and dim_resp.results:
+                                all_raw_results.extend(dim_resp.results)
+                        if all_raw_results:
+                            classified_news = self.news_preprocessor.process(
+                                code, stock_name, all_raw_results
+                            )
+                            logger.info(
+                                f"{stock_name}({code}) 新闻分类完成: "
+                                f"利好{classified_news.bullish_count} "
+                                f"利空{classified_news.bearish_count} "
+                                f"中性{classified_news.neutral_count}"
+                            )
+                    except Exception as e:
+                        logger.warning(f"{stock_name}({code}) 新闻预处理失败: {e}")
             else:
                 logger.info(f"{stock_name}({code}) 搜索服务不可用，跳过情报搜索")
 
@@ -349,14 +371,33 @@ class StockAnalysisPipeline:
             
             # Step 6: 增强上下文数据（添加实时行情、筹码、趋势分析结果、股票名称）
             enhanced_context = self._enhance_context(
-                context, 
-                realtime_quote, 
+                context,
+                realtime_quote,
                 chip_data,
                 trend_result,
                 stock_name,  # 传入股票名称
                 fundamental_context,
             )
-            
+
+            # Phase 2: 注入分类新闻摘要
+            if classified_news and classified_news.has_data:
+                enhanced_context['classified_news_summary'] = {
+                    'bullish_count': classified_news.bullish_count,
+                    'bearish_count': classified_news.bearish_count,
+                    'neutral_count': classified_news.neutral_count,
+                    'top_events': classified_news.top_events,
+                    'items': [
+                        {
+                            'title': item.title,
+                            'sentiment': item.sentiment,
+                            'impact_level': item.impact_level,
+                            'event_tags': item.event_tags,
+                            'recency_weight': item.recency_weight,
+                        }
+                        for item in classified_news.items
+                    ],
+                }
+
             # Step 7: 调用 AI 分析（传入增强的上下文和新闻）
             result = self.analyzer.analyze(enhanced_context, news_context=news_context)
 

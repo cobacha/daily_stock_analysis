@@ -1199,6 +1199,22 @@ class GeminiAnalyzer:
 未搜索到该股票近期的相关新闻。请主要依据技术面数据进行分析。
 """
 
+        # Phase 2: 添加分类新闻摘要
+        classified_summary = context.get('classified_news_summary', {})
+        if classified_summary:
+            prompt += f"""
+
+---
+## 📊 新闻情绪统计
+
+- **利好**: {classified_summary.get('bullish_count', 0)}条
+- **利空**: {classified_summary.get('bearish_count', 0)}条
+- **中性**: {classified_summary.get('neutral_count', 0)}条
+"""
+            top_events = classified_summary.get('top_events', [])
+            if top_events:
+                prompt += f"\n**重要事件**: {', '.join(top_events)}"
+
         # 注入缺失数据警告
         if context.get('data_missing'):
             prompt += """
