@@ -36,6 +36,8 @@ try:
     from lark_oapi import ws
     from lark_oapi.api.im.v1 import (
         P2ImMessageReceiveV1,
+        P2ImChatAccessEventBotP2pChatEnteredV1,
+        P2ImMessageMessageReadV1,
         ReplyMessageRequest,
         ReplyMessageRequestBody,
         CreateMessageRequest,
@@ -528,12 +530,55 @@ class FeishuStreamClient:
         encrypt_key = getattr(config, 'feishu_encrypt_key', '') or ''
         verification_token = getattr(config, 'feishu_verification_token', '') or ''
 
+        def handle_p2p_chat_entered(
+            event: 'P2ImChatAccessEventBotP2pChatEnteredV1',
+        ) -> None:
+            """处理用户首次打开与机器人私聊的事件，静默忽略即可（避免 SDK 报错）。"""
+            try:
+                operator = getattr(event.event, 'operator_id', None)
+                chat_id = getattr(event.event, 'chat_id', None)
+                logger.debug(
+                    "[Feishu Stream] 用户打开私聊: operator=%s chat_id=%s",
+                    operator, chat_id,
+                )
+                # 发送欢迎语（可选，注释掉则仅静默忽略）
+                if chat_id and self._reply_client:
+                    welcome = (
+                        "**你好！我是股票分析助手** 👋\n\n"
+                        "直接发送股票代码即可开始 AI 分析，支持：\n"
+                        "- **A 股**：`600519`、`000858`\n"
+                        "- **港股**：`00700`\n"
+                        "- **美股**：`AAPL`、`TSLA`\n\n"
+                        "发送 `/help` 查看更多命令。"
+                    )
+                    self._reply_client.send_to_chat(
+                        chat_id=chat_id,
+                        text=welcome,
+                        receive_id_type="chat_id",
+                    )
+            except Exception as e:
+                logger.debug("[Feishu Stream] 处理 p2p_chat_entered 事件失败（已忽略）: %s", e)
+
+        # 消息已读事件处理器（静默忽略，不影响正常消息处理）
+        def handle_message_read(event: 'lark.P2ImMessageMessageReadV1') -> None:
+            """处理消息已读事件"""
+            try:
+                if event.event and event.event.message_read_detail:
+                    chat_id = event.event.message_read_detail.chat_id or ""
+                    logger.debug(f"[Feishu Stream] 消息已读: chat_id={chat_id}")
+            except Exception as e:
+                logger.debug("[Feishu Stream] 处理 message_read 事件失败（已忽略）: %s", e)
+
         event_handler = lark.EventDispatcherHandler.builder(
             encrypt_key=encrypt_key,
             verification_token=verification_token,
             level=lark.LogLevel.WARNING
         ).register_p2_im_message_receive_v1(
             handler.handle_message
+        ).register_p2_im_chat_access_event_bot_p2p_chat_entered_v1(
+            handle_p2p_chat_entered
+        ).register_p2_im_message_message_read_v1(
+            handle_message_read
         ).build()
 
         return event_handler

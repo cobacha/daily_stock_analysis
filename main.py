@@ -210,6 +210,12 @@ def parse_arguments() -> argparse.Namespace:
         help='强制回测（即使已有回测结果也重新计算）'
     )
 
+    parser.add_argument(
+        '--update',
+        action='store_true',
+        help='强制忽略盘后缓存，重新执行完整 AI 分析（清空当日缓存）'
+    )
+
     return parser.parse_args()
 
 
@@ -307,7 +313,8 @@ def run_full_analysis(
             max_workers=args.workers,
             query_id=query_id,
             query_source="cli",
-            save_context_snapshot=save_context_snapshot
+            save_context_snapshot=save_context_snapshot,
+            force_update=getattr(args, 'update', False),
         )
 
         # 1. 运行个股分析

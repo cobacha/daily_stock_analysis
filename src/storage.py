@@ -1062,6 +1062,42 @@ class DatabaseManager:
                 logger.error(f"保存分析历史失败: {e}")
                 return 0
 
+    def clone_analysis_record(self, source: "AnalysisHistory", new_query_id: str) -> int:
+        """
+        将已有分析记录克隆为新 query_id 的记录（用于盘后缓存命中时追踪 task_id）。
+
+        Returns:
+            新记录的 id，失败返回 0
+        """
+        new_record = AnalysisHistory(
+            query_id=new_query_id,
+            code=source.code,
+            name=source.name,
+            report_type=source.report_type,
+            sentiment_score=source.sentiment_score,
+            operation_advice=source.operation_advice,
+            trend_prediction=source.trend_prediction,
+            analysis_summary=source.analysis_summary,
+            raw_result=source.raw_result,
+            news_content=source.news_content,
+            context_snapshot=source.context_snapshot,
+            ideal_buy=source.ideal_buy,
+            secondary_buy=source.secondary_buy,
+            stop_loss=source.stop_loss,
+            take_profit=source.take_profit,
+            created_at=datetime.now(),
+        )
+        with self.get_session() as session:
+            try:
+                session.add(new_record)
+                session.commit()
+                session.refresh(new_record)
+                return new_record.id
+            except Exception as e:
+                session.rollback()
+                logger.error(f"克隆分析记录失败: {e}")
+                return 0
+
     def get_analysis_history(
         self,
         code: Optional[str] = None,
