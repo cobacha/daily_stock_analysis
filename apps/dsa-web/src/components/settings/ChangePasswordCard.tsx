@@ -63,7 +63,7 @@ export const ChangePasswordCard: React.FC = () => {
   return (
     <div className="rounded-xl border border-white/8 bg-elevated/50 p-4">
       <div className="mb-2 flex items-center gap-2">
-        <label className="text-sm font-semibold text-white">修改密码</label>
+        <label className="text-sm font-semibold text-foreground">修改密码</label>
       </div>
       <p className="mb-3 text-xs text-muted-text">修改管理员登录密码</p>
 

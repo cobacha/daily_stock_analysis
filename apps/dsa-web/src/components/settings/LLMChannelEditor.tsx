@@ -218,7 +218,7 @@ const ChannelRow: React.FC<ChannelRowProps> = ({
           onChange={(e) => onUpdate(index, 'enabled', e.target.checked)}
         />
 
-        <span className="min-w-[100px] truncate text-sm font-medium text-white">{displayName}</span>
+        <span className="min-w-[100px] truncate text-sm font-medium text-foreground">{displayName}</span>
 
         <span className="hidden rounded bg-white/8 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-text sm:inline">
           {channel.protocol}
@@ -869,7 +869,7 @@ export const LLMChannelEditor: React.FC<LLMChannelEditorProps> = ({
         onClick={() => setIsCollapsed((previous) => !previous)}
       >
         <div>
-          <h3 className="text-sm font-semibold text-white">AI 模型配置</h3>
+          <h3 className="text-sm font-semibold text-foreground">AI 模型配置</h3>
           <p className="mt-0.5 text-xs text-muted-text">
             添加服务商渠道，填入 API Key 和模型名称即可。配置会自动同步到 .env 文件。
           </p>

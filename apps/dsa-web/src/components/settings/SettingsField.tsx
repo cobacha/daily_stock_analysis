@@ -208,7 +208,7 @@ export const SettingsField: React.FC<SettingsFieldProps> = ({
   return (
     <div className={`rounded-xl border p-4 ${hasError ? 'border-red-500/35' : 'border-white/8'} bg-elevated/50`}>
       <div className="mb-2 flex items-center gap-2">
-        <label className="text-sm font-semibold text-white" htmlFor={`setting-${item.key}`}>
+        <label className="text-sm font-semibold text-foreground" htmlFor={`setting-${item.key}`}>
           {title}
         </label>
         {schema?.isSensitive ? (

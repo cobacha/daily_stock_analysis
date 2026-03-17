@@ -70,13 +70,13 @@ export const Drawer: React.FC<DrawerProps> = ({
             {title ? (
               <div>
                 <span className="label-uppercase">DETAIL VIEW</span>
-                <h2 className="mt-1 text-lg font-semibold text-white">{title}</h2>
+                <h2 className="mt-1 text-lg font-semibold text-foreground">{title}</h2>
               </div>
             ) : <div />}
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-secondary-text transition-colors hover:bg-white/10 hover:text-white"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-secondary-text transition-colors hover:bg-white/10 hover:text-foreground"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
