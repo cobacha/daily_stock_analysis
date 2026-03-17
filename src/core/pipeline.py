@@ -337,51 +337,75 @@ class StockAnalysisPipeline:
                     except Exception as e:
                         logger.warning(f"{stock_name}({code}) 保存新闻情报失败: {e}")
 
-                    # Phase 2: 新闻LLM分类预处理
-                    classified_news = None
-                    try:
+                    # Phase 1: 技术标签（在主线程直接计算，无需网络）
+                    technical_labels = []
+                    if trend_result:
+                        technical_labels = self.pattern_labeler.label(trend_result)
+
+                    # Phase 2~4: 并行运行数据收集器
+                    collector_futures = {}
+                    with ThreadPoolExecutor(max_workers=3) as col_executor:
+                        # 资金流向
+                        collector_futures['fund_flow'] = col_executor.submit(
+                            self.fund_flow_collector.collect, code
+                        )
+                        # 同行对比
+                        collector_futures['peer'] = col_executor.submit(
+                            self.peer_collector.collect, code, stock_name
+                        )
+                        # 新闻分类（需要先完成搜索）
                         all_raw_results = []
                         for dim_resp in intel_results.values():
                             if dim_resp and dim_resp.success and dim_resp.results:
                                 all_raw_results.extend(dim_resp.results)
                         if all_raw_results:
-                            classified_news = self.news_preprocessor.process(
-                                code, stock_name, all_raw_results
+                            collector_futures['news'] = col_executor.submit(
+                                self.news_preprocessor.process, code, stock_name, all_raw_results
                             )
-                            logger.info(
-                                f"{stock_name}({code}) 新闻分类完成: "
-                                f"利好{classified_news.bullish_count} "
-                                f"利空{classified_news.bearish_count} "
-                                f"中性{classified_news.neutral_count}"
-                            )
-                    except Exception as e:
-                        logger.warning(f"{stock_name}({code}) 新闻预处理失败: {e}")
+
+                    # 收集结果
+                    fund_flow_data = collector_futures.get('fund_flow')
+                    if fund_flow_data:
+                        try:
+                            fund_flow_data = fund_flow_data.result(timeout=15)
+                            if fund_flow_data and fund_flow_data.has_data:
+                                logger.info(
+                                    f"{stock_name}({code}) 资金流向: "
+                                    f"主力1日={fund_flow_data.main_net_inflow_1d:.0f}万"
+                                )
+                        except Exception as e:
+                            logger.warning(f"{stock_name}({code}) 资金流向收集超时/失败: {e}")
+                            fund_flow_data = None
+
+                    peer_data = collector_futures.get('peer')
+                    if peer_data:
+                        try:
+                            peer_data = peer_data.result(timeout=20)
+                            if peer_data and peer_data.has_data:
+                                logger.info(
+                                    f"{stock_name}({code}) 同行对比: 板块={peer_data.sector_name}, "
+                                    f"板块涨跌={peer_data.sector_change_pct:.2f}%"
+                                )
+                        except Exception as e:
+                            logger.warning(f"{stock_name}({code}) 同行对比收集超时/失败: {e}")
+                            peer_data = None
+
+                    classified_news = collector_futures.get('news')
+                    if classified_news:
+                        try:
+                            classified_news = classified_news.result(timeout=30)
+                            if classified_news and classified_news.has_data:
+                                logger.info(
+                                    f"{stock_name}({code}) 新闻分类完成: "
+                                    f"利好{classified_news.bullish_count} "
+                                    f"利空{classified_news.bearish_count} "
+                                    f"中性{classified_news.neutral_count}"
+                                )
+                        except Exception as e:
+                            logger.warning(f"{stock_name}({code}) 新闻分类并行收集超时/失败: {e}")
+                            classified_news = None
             else:
                 logger.info(f"{stock_name}({code}) 搜索服务不可用，跳过情报搜索")
-
-            # Phase 3: 资金流向收集
-            fund_flow_data = None
-            try:
-                fund_flow_data = self.fund_flow_collector.collect(code)
-                if fund_flow_data.has_data:
-                    logger.info(
-                        f"{stock_name}({code}) 资金流向: "
-                        f"主力1日={fund_flow_data.main_net_inflow_1d:.0f}万"
-                    )
-            except Exception as e:
-                logger.warning(f"{stock_name}({code}) 资金流向收集失败: {e}")
-
-            # Phase 4: 同行对比收集
-            peer_data = None
-            try:
-                peer_data = self.peer_collector.collect(code, stock_name)
-                if peer_data.has_data:
-                    logger.info(
-                        f"{stock_name}({code}) 同行对比: 板块={peer_data.sector_name}, "
-                        f"板块涨跌={peer_data.sector_change_pct:.2f}%"
-                    )
-            except Exception as e:
-                logger.warning(f"{stock_name}({code}) 同行对比收集失败: {e}")
 
             # Step 5: 获取分析上下文（技术面数据）
             context = self.db.get_analysis_context(code)
@@ -397,7 +421,7 @@ class StockAnalysisPipeline:
                     'yesterday': {}
                 }
             
-            # Step 6: 增强上下文数据（添加实时行情、筹码、趋势分析结果、股票名称）
+            # Step 6: 增强上下文数据（添加实时行情、筹码、趋势分析结果、股票名称、技术标签）
             enhanced_context = self._enhance_context(
                 context,
                 realtime_quote,
@@ -406,6 +430,7 @@ class StockAnalysisPipeline:
                 stock_name,  # 传入股票名称
                 fundamental_context,
                 fund_flow_data,
+                technical_labels,
             )
 
             # Phase 2: 注入分类新闻摘要
@@ -493,19 +518,21 @@ class StockAnalysisPipeline:
         stock_name: str = "",
         fundamental_context: Optional[Dict[str, Any]] = None,
         fund_flow_data: Optional[Any] = None,
+        technical_labels: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         增强分析上下文
-        
+
         将实时行情、筹码分布、趋势分析结果、股票名称添加到上下文中
-        
+
         Args:
             context: 原始上下文
             realtime_quote: 实时行情数据（UnifiedRealtimeQuote 或 None）
             chip_data: 筹码分布数据
             trend_result: 趋势分析结果
             stock_name: 股票名称
-            
+            technical_labels: 技术形态标签列表
+
         Returns:
             增强后的上下文
         """
@@ -565,8 +592,9 @@ class StockAnalysisPipeline:
                 'risk_factors': trend_result.risk_factors,
             }
 
-            # Phase 1: 注入技术形态标签
-            enhanced['technical_labels'] = self.pattern_labeler.label(trend_result)
+            # Phase 1: 注入技术形态标签（已在主线程计算完成）
+            if technical_labels:
+                enhanced['technical_labels'] = technical_labels
 
         # Issue #234: Override today with realtime OHLC + trend MA for intraday analysis
         # Guard: trend_result.ma5 > 0 ensures MA calculation succeeded (data sufficient)
