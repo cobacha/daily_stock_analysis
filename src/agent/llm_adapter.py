@@ -219,15 +219,26 @@ class LLMToolAdapter:
         messages: List[Dict[str, Any]],
         *,
         provider: Optional[str] = None,
+        model: Optional[str] = None,
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
         timeout: Optional[float] = None,
     ) -> LLMResponse:
-        """Send a text-only completion through the shared routing stack."""
+        """Send a text-only completion through the shared routing stack.
+
+        Args:
+            messages: List of message dicts
+            provider: (deprecated, use model instead)
+            model: Override the model to use (e.g., 'gemini-flash-latest' for lightweight tasks)
+            temperature: Override temperature
+            max_tokens: Override max tokens
+            timeout: Override timeout
+        """
         return self.call_completion(
             messages,
             tools=None,
             provider=provider,
+            model=model,
             temperature=temperature,
             max_tokens=max_tokens,
             timeout=timeout,
@@ -239,13 +250,31 @@ class LLMToolAdapter:
         *,
         tools: Optional[List[dict]] = None,
         provider: Optional[str] = None,
+        model: Optional[str] = None,
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
         timeout: Optional[float] = None,
     ) -> LLMResponse:
-        """Shared completion path for both tool and text-only calls."""
+        """Shared completion path for both tool and text-only calls.
+
+        Args:
+            messages: List of message dicts
+            tools: List of tools for tool-calling
+            provider: (deprecated, use model instead)
+            model: Override the model to use (e.g., 'gemini-flash-latest' for lightweight tasks)
+            temperature: Override temperature
+            max_tokens: Override max tokens
+            timeout: Override timeout
+        """
         config = self._config
-        models_to_try = [config.litellm_model] + (config.litellm_fallback_models or [])
+        # If model is specified, use it as the primary model
+        if model:
+            # Add provider prefix if not present
+            if '/' not in model:
+                model = f'gemini/{model}'
+            models_to_try = [model] + (config.litellm_fallback_models or [])
+        else:
+            models_to_try = [config.litellm_model] + (config.litellm_fallback_models or [])
         models_to_try = [m for m in models_to_try if m]
 
         last_error = None

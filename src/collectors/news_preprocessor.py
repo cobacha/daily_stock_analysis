@@ -34,9 +34,13 @@ class NewsPreprocessor:
             prompt = _CLASSIFY_PROMPT_TEMPLATE.format(stock_name=stock_name, stock_code=stock_code,
                                                      news_list="\n".join(news_lines))
 
-            # 2. LLM调用
+            # 2. LLM调用（使用轻量级模型进行文本分类）
             llm = LLMToolAdapter()
-            resp = llm.call_text([{"role": "user", "content": prompt}], temperature=0.1)
+            resp = llm.call_text(
+                [{"role": "user", "content": prompt}],
+                model="gemini-flash-latest",
+                temperature=0.1
+            )
             if not resp or not resp.content:
                 return ClassifiedNews()
 
