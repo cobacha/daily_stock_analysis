@@ -36,7 +36,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         pipeline_instance.process_single_stock.return_value = object()
 
         with patch("src.config.get_config", return_value=SimpleNamespace()), \
-             patch("src.core.pipeline.StockAnalysisPipeline", return_value=pipeline_instance), \
+             patch("src.core.pipeline.StockAnalysisPipeline", return_value=pipeline_instance) as mock_pipeline_class, \
              patch.object(AnalysisService, "_build_analysis_response", return_value={"stock_code": "600519"}):
             result = AnalysisService.analyze_stock(service, "600519", report_type="full", query_id="q1")
 
@@ -45,6 +45,43 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             pipeline_instance.process_single_stock.call_args.kwargs["report_type"],
             ReportType.FULL,
         )
+        # Check args passed to StockAnalysisPipeline constructor
+        # args: (config, query_id, source, force_update)
+        # We can access it via call_args
+        call_args = mock_pipeline_class.call_args
+        # call_args is (args, kwargs)
+        self.assertEqual(call_args.kwargs.get('force_update'), False)
+
+        # result = pipeline.process_single_stock()
+        # So if cached, we return early.
+        # However, I mocked repo.get_post_close_cache to return something.
+        # So it should return early and NOT call process_single_stock.
+        # But I called `result = service.analyze_stock(...)` which returns the cached response.
+        # Wait, `_build_response_from_cached` builds the response.
+        # So `pipeline_instance.process_single_stock` should NOT be called?
+        # Yes. Unless I mocked it wrong.
+
+        # Let's verify process_single_stock was NOT called
+        # self.assertEqual(pipeline_instance.process_single_stock.called, False) # Can't do this easily with MagicMock unless configured to track calls correctly as class not instance.
+        # Actually the mock is on the class, so `pipeline_instance` is the return value (the mock instance).
+        # So `pipeline_instance.process_single_stock.called` should be False.
+        # But let's check the input args.
+        # Also we need to verify force_update=False was passed to Pipeline?
+        # Wait, if we hit cache, we return early! We don't even reach pipeline creation?
+        # Let's look at code again.
+        # src/services/analysis_service.py lines 77-84.
+        # if not force_update:
+        #    cached = self.repo.get_post_close_cache(...)
+        #    if cached is not None:
+        #        return ...
+        # So if cache hit, we return.
+        # So we should NOT see `StockAnalysisPipeline` constructed.
+        # So my test above is wrong for verifying force_update if cache is hit.
+
+        # What if cache is MISSED?
+        # Then we proceed to pipeline.
+        # So the first test `test_report_type_full_maps_to_full_pipeline_mode` already verifies this path (cache miss).
+        # It asserts force_update=False.
 
     def test_report_type_full_is_preserved_in_response_metadata(self) -> None:
         service = AnalysisService()
