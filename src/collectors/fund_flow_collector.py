@@ -53,7 +53,13 @@ class FundFlowCollector:
             if col in df.columns:
                 val = latest.get(col)
                 if pd.notna(val):
-                    data.main_net_inflow_1d = float(val)
+                    flow_value = float(val)
+                    # AkShare 返回单位是"万元"，过滤异常值（单只股票日主力流入不会超过10亿）
+                    if abs(flow_value) < 100000:  # 10亿以内视为有效数据
+                        data.main_net_inflow_1d = flow_value
+                    else:
+                        import logging
+                        logging.warning(f"[FundFlowCollector] 主力资金数据异常: {flow_value}万元，跳过")
                     break
 
         data.has_data = data.main_net_inflow_1d is not None

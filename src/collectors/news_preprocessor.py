@@ -40,8 +40,17 @@ class NewsPreprocessor:
             if not resp or not resp.content:
                 return ClassifiedNews()
 
-            # 3. 解析JSON
-            data = json.loads(resp.content)
+            # 3. 解析JSON（处理可能的markdown包装）
+            raw_content = resp.content.strip()
+            # 移除可能的 markdown 包装
+            if raw_content.startswith("```"):
+                # 移除 ```json 或 ``` 等标记
+                lines = raw_content.split("\n")
+                if len(lines) >= 2:
+                    raw_content = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+            raw_content = raw_content.strip()
+
+            data = json.loads(raw_content)
             if not isinstance(data, list):
                 return ClassifiedNews()
 
@@ -71,6 +80,9 @@ class NewsPreprocessor:
 
             return ClassifiedNews(items=items, bullish_count=bullish, bearish_count=bearish,
                                   neutral_count=neutral, has_data=len(items) > 0)
+        except json.JSONDecodeError as e:
+            logging.warning(f"[NewsPreprocessor] JSON解析失败: {e}, 返回内容: {resp.content[:200] if resp and resp.content else 'None'}...")
+            return ClassifiedNews()
         except Exception as e:
             logging.warning(f"[NewsPreprocessor] 处理失败: {e}")
             return ClassifiedNews()
